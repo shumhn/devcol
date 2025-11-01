@@ -1,0 +1,1107 @@
+{
+  "address": "jMoPDACzrw3J76eRCgXzb61vZh28nDp4WKidr4BFKA6",
+  "metadata": {
+    "name": "devcol_solana",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "accept_collab_request",
+      "docs": [
+        "Accept a collaboration request"
+      ],
+      "discriminator": [
+        111,
+        189,
+        234,
+        176,
+        56,
+        107,
+        149,
+        138
+      ],
+      "accounts": [
+        {
+          "name": "collab_request",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  108,
+                  108,
+                  97,
+                  98,
+                  95,
+                  114,
+                  101,
+                  113,
+                  117,
+                  101,
+                  115,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "collab_request.from",
+                "account": "CollaborationRequest"
+              },
+              {
+                "kind": "account",
+                "path": "collab_request.project",
+                "account": "CollaborationRequest"
+              }
+            ]
+          }
+        },
+        {
+          "name": "project_owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "to",
+          "relations": [
+            "collab_request"
+          ]
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "create_project",
+      "docs": [
+        "Create a new project with enhanced fields"
+      ],
+      "discriminator": [
+        148,
+        219,
+        181,
+        42,
+        221,
+        114,
+        145,
+        190
+      ],
+      "accounts": [
+        {
+          "name": "project",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  106,
+                  101,
+                  99,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "creator"
+              },
+              {
+                "kind": "arg",
+                "path": "name"
+              }
+            ]
+          }
+        },
+        {
+          "name": "creator",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "type": "string"
+        },
+        {
+          "name": "github_link",
+          "type": "string"
+        },
+        {
+          "name": "logo_ipfs_hash",
+          "type": "string"
+        },
+        {
+          "name": "tech_stack",
+          "type": {
+            "vec": "string"
+          }
+        },
+        {
+          "name": "contribution_needs",
+          "type": {
+            "vec": "string"
+          }
+        },
+        {
+          "name": "collab_intent",
+          "type": "string"
+        },
+        {
+          "name": "collaboration_level",
+          "type": {
+            "defined": {
+              "name": "CollaborationLevel"
+            }
+          }
+        },
+        {
+          "name": "project_status",
+          "type": {
+            "defined": {
+              "name": "ProjectStatus"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "create_user",
+      "docs": [
+        "Initialize a new user profile with enhanced fields"
+      ],
+      "discriminator": [
+        108,
+        227,
+        130,
+        130,
+        252,
+        109,
+        75,
+        218
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "display_name",
+          "type": "string"
+        },
+        {
+          "name": "role",
+          "type": "string"
+        },
+        {
+          "name": "location",
+          "type": "string"
+        },
+        {
+          "name": "bio",
+          "type": "string"
+        },
+        {
+          "name": "github_link",
+          "type": "string"
+        },
+        {
+          "name": "ipfs_metadata_hash",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "delete_user",
+      "docs": [
+        "Delete (deactivate) user profile"
+      ],
+      "discriminator": [
+        186,
+        85,
+        17,
+        249,
+        219,
+        231,
+        98,
+        251
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "wallet",
+          "relations": [
+            "user"
+          ]
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "reject_collab_request",
+      "docs": [
+        "Reject a collaboration request"
+      ],
+      "discriminator": [
+        198,
+        121,
+        185,
+        164,
+        244,
+        136,
+        238,
+        13
+      ],
+      "accounts": [
+        {
+          "name": "collab_request",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  108,
+                  108,
+                  97,
+                  98,
+                  95,
+                  114,
+                  101,
+                  113,
+                  117,
+                  101,
+                  115,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "collab_request.from",
+                "account": "CollaborationRequest"
+              },
+              {
+                "kind": "account",
+                "path": "collab_request.project",
+                "account": "CollaborationRequest"
+              }
+            ]
+          }
+        },
+        {
+          "name": "project_owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "to",
+          "relations": [
+            "collab_request"
+          ]
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "send_collab_request",
+      "docs": [
+        "Send a collaboration request"
+      ],
+      "discriminator": [
+        11,
+        245,
+        71,
+        109,
+        239,
+        240,
+        127,
+        60
+      ],
+      "accounts": [
+        {
+          "name": "collab_request",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  108,
+                  108,
+                  97,
+                  98,
+                  95,
+                  114,
+                  101,
+                  113,
+                  117,
+                  101,
+                  115,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "sender"
+              },
+              {
+                "kind": "account",
+                "path": "project"
+              }
+            ]
+          }
+        },
+        {
+          "name": "sender",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "project"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "message",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "update_project",
+      "docs": [
+        "Update project details (only by creator)"
+      ],
+      "discriminator": [
+        2,
+        196,
+        131,
+        92,
+        28,
+        139,
+        179,
+        94
+      ],
+      "accounts": [
+        {
+          "name": "project",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  106,
+                  101,
+                  99,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "creator"
+              },
+              {
+                "kind": "account",
+                "path": "project.name",
+                "account": "Project"
+              }
+            ]
+          }
+        },
+        {
+          "name": "creator",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "project"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "name",
+          "type": {
+            "option": "string"
+          }
+        },
+        {
+          "name": "description",
+          "type": {
+            "option": "string"
+          }
+        },
+        {
+          "name": "github_link",
+          "type": {
+            "option": "string"
+          }
+        },
+        {
+          "name": "tech_stack",
+          "type": {
+            "option": {
+              "vec": "string"
+            }
+          }
+        },
+        {
+          "name": "contribution_needs",
+          "type": {
+            "option": {
+              "vec": "string"
+            }
+          }
+        },
+        {
+          "name": "collab_intent",
+          "type": {
+            "option": "string"
+          }
+        },
+        {
+          "name": "collaboration_level",
+          "type": {
+            "option": {
+              "defined": {
+                "name": "CollaborationLevel"
+              }
+            }
+          }
+        },
+        {
+          "name": "project_status",
+          "type": {
+            "option": {
+              "defined": {
+                "name": "ProjectStatus"
+              }
+            }
+          }
+        },
+        {
+          "name": "is_active",
+          "type": {
+            "option": "bool"
+          }
+        }
+      ]
+    },
+    {
+      "name": "update_user",
+      "docs": [
+        "Update user profile with enhanced fields"
+      ],
+      "discriminator": [
+        9,
+        2,
+        160,
+        169,
+        118,
+        12,
+        207,
+        84
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "wallet",
+          "relations": [
+            "user"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "display_name",
+          "type": {
+            "option": "string"
+          }
+        },
+        {
+          "name": "role",
+          "type": {
+            "option": "string"
+          }
+        },
+        {
+          "name": "location",
+          "type": {
+            "option": "string"
+          }
+        },
+        {
+          "name": "bio",
+          "type": {
+            "option": "string"
+          }
+        },
+        {
+          "name": "github_link",
+          "type": {
+            "option": "string"
+          }
+        },
+        {
+          "name": "ipfs_metadata_hash",
+          "type": {
+            "option": "string"
+          }
+        },
+        {
+          "name": "open_to_collab",
+          "type": {
+            "option": "bool"
+          }
+        },
+        {
+          "name": "profile_visibility",
+          "type": {
+            "option": {
+              "defined": {
+                "name": "ProfileVisibility"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "CollaborationRequest",
+      "discriminator": [
+        141,
+        101,
+        93,
+        76,
+        6,
+        68,
+        85,
+        138
+      ]
+    },
+    {
+      "name": "Project",
+      "discriminator": [
+        205,
+        168,
+        189,
+        202,
+        181,
+        247,
+        142,
+        19
+      ]
+    },
+    {
+      "name": "User",
+      "discriminator": [
+        159,
+        117,
+        95,
+        227,
+        239,
+        151,
+        58,
+        236
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "UsernameTooLong",
+      "msg": "Username must be 32 characters or less"
+    },
+    {
+      "code": 6001,
+      "name": "GithubLinkTooLong",
+      "msg": "GitHub link must be 100 characters or less"
+    },
+    {
+      "code": 6002,
+      "name": "BioTooLong",
+      "msg": "Bio must be 200 characters or less"
+    },
+    {
+      "code": 6003,
+      "name": "DisplayNameTooLong",
+      "msg": "Display name must be 64 characters or less"
+    },
+    {
+      "code": 6004,
+      "name": "RoleTooLong",
+      "msg": "Role must be 50 characters or less"
+    },
+    {
+      "code": 6005,
+      "name": "LocationTooLong",
+      "msg": "Location must be 50 characters or less"
+    },
+    {
+      "code": 6006,
+      "name": "IpfsHashTooLong",
+      "msg": "IPFS hash must be 64 characters or less"
+    },
+    {
+      "code": 6007,
+      "name": "NameTooLong",
+      "msg": "Project name must be 50 characters or less"
+    },
+    {
+      "code": 6008,
+      "name": "DescriptionTooLong",
+      "msg": "Description must be 1000 characters or less"
+    },
+    {
+      "code": 6009,
+      "name": "CollabLevelTooLong",
+      "msg": "Collaboration level must be 30 characters or less"
+    },
+    {
+      "code": 6010,
+      "name": "TechTagTooLong",
+      "msg": "Tech tag must be 24 characters or less"
+    },
+    {
+      "code": 6011,
+      "name": "NeedTagTooLong",
+      "msg": "Contribution need tag must be 24 characters or less"
+    },
+    {
+      "code": 6012,
+      "name": "TechTagCountExceeded",
+      "msg": "Too many tech tags (max 12)"
+    },
+    {
+      "code": 6013,
+      "name": "NeedTagCountExceeded",
+      "msg": "Too many contribution need tags (max 10)"
+    },
+    {
+      "code": 6014,
+      "name": "CollabIntentTooLong",
+      "msg": "Collaboration intent must be 300 characters or less"
+    },
+    {
+      "code": 6015,
+      "name": "MessageTooLong",
+      "msg": "Message must be 500 characters or less"
+    },
+    {
+      "code": 6016,
+      "name": "InvalidRequestStatus",
+      "msg": "Invalid request status for this operation"
+    }
+  ],
+  "types": [
+    {
+      "name": "CollaborationLevel",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Beginner"
+          },
+          {
+            "name": "Intermediate"
+          },
+          {
+            "name": "Advanced"
+          },
+          {
+            "name": "AllLevels"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CollaborationRequest",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "from",
+            "type": "pubkey"
+          },
+          {
+            "name": "to",
+            "type": "pubkey"
+          },
+          {
+            "name": "project",
+            "type": "pubkey"
+          },
+          {
+            "name": "message",
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "RequestStatus"
+              }
+            }
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProfileVisibility",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Public"
+          },
+          {
+            "name": "Private"
+          },
+          {
+            "name": "FriendsOnly"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Project",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "name": "github_link",
+            "type": "string"
+          },
+          {
+            "name": "logo_ipfs_hash",
+            "type": "string"
+          },
+          {
+            "name": "tech_stack",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "ShortText"
+                }
+              }
+            }
+          },
+          {
+            "name": "contribution_needs",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "ShortText"
+                }
+              }
+            }
+          },
+          {
+            "name": "collab_intent",
+            "type": "string"
+          },
+          {
+            "name": "collaboration_level",
+            "type": {
+              "defined": {
+                "name": "CollaborationLevel"
+              }
+            }
+          },
+          {
+            "name": "project_status",
+            "type": {
+              "defined": {
+                "name": "ProjectStatus"
+              }
+            }
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "last_updated",
+            "type": "i64"
+          },
+          {
+            "name": "contributors_count",
+            "type": "u16"
+          },
+          {
+            "name": "is_active",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProjectStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "JustStarted"
+          },
+          {
+            "name": "InProgress"
+          },
+          {
+            "name": "NearlyComplete"
+          },
+          {
+            "name": "Completed"
+          },
+          {
+            "name": "ActiveDev"
+          },
+          {
+            "name": "OnHold"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RequestStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Pending"
+          },
+          {
+            "name": "Accepted"
+          },
+          {
+            "name": "Rejected"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ShortText",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "value",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "User",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "wallet",
+            "type": "pubkey"
+          },
+          {
+            "name": "username",
+            "type": "string"
+          },
+          {
+            "name": "display_name",
+            "type": "string"
+          },
+          {
+            "name": "role",
+            "type": "string"
+          },
+          {
+            "name": "location",
+            "type": "string"
+          },
+          {
+            "name": "bio",
+            "type": "string"
+          },
+          {
+            "name": "github_link",
+            "type": "string"
+          },
+          {
+            "name": "ipfs_metadata_hash",
+            "type": "string"
+          },
+          {
+            "name": "reputation",
+            "type": "u32"
+          },
+          {
+            "name": "projects_count",
+            "type": "u32"
+          },
+          {
+            "name": "collabs_count",
+            "type": "u32"
+          },
+          {
+            "name": "member_since",
+            "type": "i64"
+          },
+          {
+            "name": "last_active",
+            "type": "i64"
+          },
+          {
+            "name": "is_verified",
+            "type": "bool"
+          },
+          {
+            "name": "open_to_collab",
+            "type": "bool"
+          },
+          {
+            "name": "profile_visibility",
+            "type": {
+              "defined": {
+                "name": "ProfileVisibility"
+              }
+            }
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    }
+  ]
+}
