@@ -7,6 +7,8 @@ import { PublicKey } from '@solana/web3.js';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useAnchorProgram } from '@/app/hooks/useAnchorProgram';
 import { rpcWithRetry } from '@/app/utils/rpcRetry';
+import { showToast } from '@/app/components/Toast';
+import { MessageModal } from '@/app/components/MessageModal';
 
 function StatusBadge({ status }: { status: string }) {
   const color =
@@ -49,6 +51,9 @@ export default function RequestDetailPage() {
   const [isLegacy, setIsLegacy] = useState(false);
   const [acting, setActing] = useState<'accept' | 'reject' | 'review' | null>(null);
   const [usernames, setUsernames] = useState<Record<string, string>>({});
+  const [showMessageModal, setShowMessageModal] = useState<'accept' | 'reject' | null>(null);
+  const [ownerMessage, setOwnerMessage] = useState('');
+  const [displayMessage, setDisplayMessage] = useState<{type: string, message: string} | null>(null);
 
   const shorten = (s: string) => `${s.slice(0, 4)}…${s.slice(-4)}`;
   
@@ -95,6 +100,13 @@ export default function RequestDetailPage() {
         setIsLegacy(!!owner && !!current && owner !== current);
         // Batch resolve usernames
         await resolveUsernames([account.from.toString(), account.to.toString()]);
+        // Load owner message if exists
+        try {
+          const stored = localStorage.getItem(`request_message_${k.toString()}`);
+          if (stored) {
+            setDisplayMessage(JSON.parse(stored));
+          }
+        } catch {}
       } catch (e) {
         console.error('Fetch request error:', e);
       } finally {
@@ -124,12 +136,24 @@ export default function RequestDetailPage() {
       await rpcWithRetry(() =>
         (program as any).methods
           .acceptCollabRequest()
-          .accounts({ collabRequest: req.publicKey, to: publicKey })
+          .accounts({ collabRequest: req.publicKey, to: publicKey, project: req.account.project })
           .rpc()
       );
       // Confirmed: refetch to reconcile
       const account = await (program as any).account.collaborationRequest.fetch(req.publicKey, 'confirmed');
       setReq({ publicKey: req.publicKey, account });
+      showToast('success', '✅ Request accepted');
+      // Store owner message
+      if (ownerMessage.trim()) {
+        try {
+          localStorage.setItem(`request_message_${req.publicKey.toString()}`, JSON.stringify({
+            type: 'accept',
+            message: ownerMessage.trim(),
+            timestamp: Date.now()
+          }));
+        } catch {}
+      }
+      setOwnerMessage('');
     } catch (e) {
       console.error('Accept collab error:', e);
       alert('❌ Failed to accept: ' + (e as any)?.message || 'Unknown error');
@@ -161,7 +185,7 @@ export default function RequestDetailPage() {
       await rpcWithRetry(() =>
         (program as any).methods
           .rejectCollabRequest()
-          .accounts({ collabRequest: req.publicKey, to: publicKey })
+          .accounts({ collabRequest: req.publicKey, to: publicKey, project: req.account.project })
           .rpc()
       );
       const account = await (program as any).account.collaborationRequest.fetch(req.publicKey, 'confirmed');
@@ -196,7 +220,7 @@ export default function RequestDetailPage() {
       await rpcWithRetry(() =>
         (program as any).methods
           .markUnderReview()
-          .accounts({ collabRequest: req.publicKey, projectOwner: publicKey, to: req.account.to, project: req.account.project })
+          .accounts({ collabRequest: req.publicKey, to: publicKey, project: req.account.project })
           .rpc()
       );
       const account = await (program as any).account.collaborationRequest.fetch(req.publicKey, 'confirmed');
@@ -315,6 +339,17 @@ export default function RequestDetailPage() {
           </div>
         </div>
 
+        {youAreSender && displayMessage && (status === 'accepted' || status === 'rejected') && (
+          <div className={`mt-6 p-4 rounded-lg border ${
+            displayMessage.type === 'accept' ? 'bg-green-900 border-green-600' : 'bg-red-900 border-red-600'
+          }`}>
+            <h3 className="font-semibold text-white mb-2">
+              {displayMessage.type === 'accept' ? '✅ Message from project owner' : '❌ Rejection reason'}
+            </h3>
+            <p className="text-gray-200 whitespace-pre-wrap">{displayMessage.message}</p>
+          </div>
+        )}
+
         <div className="mt-8 flex flex-col sm:flex-row gap-3">
           {youAreRecipient && isPending && (
             <button
@@ -329,13 +364,13 @@ export default function RequestDetailPage() {
             <>
               <button
                 disabled={acting === 'accept'}
-                onClick={accept}
+                onClick={() => setShowMessageModal('accept')}
                 className="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold disabled:opacity-50"
               >
                 {acting === 'accept' ? '⏳ Accepting...' : '✅ Accept'}
               </button>
               <button
-                onClick={reject}
+                onClick={() => setShowMessageModal('reject')}
                 disabled={acting === 'reject'}
                 className="flex-1 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold disabled:opacity-50"
               >
@@ -353,6 +388,17 @@ export default function RequestDetailPage() {
           )}
         </div>
       </div>
+
+      <MessageModal
+        isOpen={!!showMessageModal}
+        type={showMessageModal || 'accept'}
+        onClose={() => setShowMessageModal(null)}
+        onSubmit={(msg) => {
+          setOwnerMessage(msg);
+          if (showMessageModal === 'accept') accept();
+          else if (showMessageModal === 'reject') reject();
+        }}
+      />
     </div>
   );
 }

@@ -8,7 +8,8 @@ import { showToast } from '../components/Toast';
 export function useNotifications() {
   const { publicKey } = useWallet();
   const { program } = useAnchorProgram();
-  const [lastChecked, setLastChecked] = useState<Record<string, string>>({});
+  const [lastCheckedFrom, setLastCheckedFrom] = useState<Record<string, string>>({});
+  const [lastCheckedTo, setLastCheckedTo] = useState<Record<string, string>>({});
   const checkInProgress = useRef(false);
 
   useEffect(() => {
@@ -19,30 +20,51 @@ export function useNotifications() {
       checkInProgress.current = true;
 
       try {
-        // Fetch all requests sent by this user
-        const filters = [
+        // Fetch all requests sent BY this user (applicant notifications)
+        const sentFilters = [
           { memcmp: { offset: 8, bytes: publicKey.toBase58() } }, // 8 disc = start of `from`
         ];
-        const requests = await (program as any).account.collaborationRequest.all(filters);
+        const sent = await (program as any).account.collaborationRequest.all(sentFilters);
 
-        requests.forEach((req: any) => {
+        sent.forEach((req: any) => {
           const key = req.publicKey.toString();
           const status = Object.keys(req.account.status)[0];
-          const prevStatus = lastChecked[key];
+          const prevStatus = lastCheckedFrom[key];
+          const roleKey = req.account.desiredRole ? Object.keys(req.account.desiredRole)[0] : '';
+          const rolePretty = roleKey ? roleKey.replace(/^[a-z]/, (c: string) => c.toUpperCase()) : 'Role';
+          const projectShort = `${req.account.project.toString().slice(0,4)}…${req.account.project.toString().slice(-4)}`;
 
-          // Notify on status change
+          // Notify applicant on status change
           if (prevStatus && prevStatus !== status) {
             if (status === 'underReview') {
-              showToast('info', '🔍 Your collaboration request is now under review!', 6000);
+              showToast('info', `🔍 Under review for ${rolePretty} on project ${projectShort}`, 6000);
             } else if (status === 'accepted') {
-              showToast('success', '🎉 Your collaboration request was accepted!', 8000);
+              showToast('success', `🎉 Accepted for ${rolePretty} on project ${projectShort}`, 8000);
             } else if (status === 'rejected') {
-              showToast('error', '❌ Your collaboration request was rejected.', 8000);
+              showToast('error', `❌ Rejected for ${rolePretty} on project ${projectShort}`, 8000);
             }
           }
 
-          // Update last known status
-          setLastChecked(prev => ({ ...prev, [key]: status }));
+          setLastCheckedFrom(prev => ({ ...prev, [key]: status }));
+        });
+
+        // Fetch all requests received BY this user (owner notifications)
+        const recvFilters = [
+          { memcmp: { offset: 8 + 32, bytes: publicKey.toBase58() } }, // 8 disc + 32 from = start of `to`
+        ];
+        const received = await (program as any).account.collaborationRequest.all(recvFilters);
+
+        received.forEach((req: any) => {
+          const key = req.publicKey.toString();
+          const status = Object.keys(req.account.status)[0];
+          const prevStatus = lastCheckedTo[key];
+
+          // Notify owner when a new pending request arrives
+          if (!prevStatus && status === 'pending') {
+            showToast('info', '✉️ New collaboration request received', 6000);
+          }
+
+          setLastCheckedTo(prev => ({ ...prev, [key]: status }));
         });
       } catch (e) {
         console.warn('Notification check failed:', e);

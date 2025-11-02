@@ -5,6 +5,9 @@ import Link from 'next/link';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { usePathname } from 'next/navigation';
+import dynamic from 'next/dynamic';
+const ToastContainer = dynamic(() => import('./Toast').then(m => m.ToastContainer), { ssr: false });
+const NotificationProvider = dynamic(() => import('./NotificationProvider').then(m => m.NotificationProvider), { ssr: false });
 import { useAnchorProgram, getUserPDA } from '../hooks/useAnchorProgram';
 
 export default function Navbar() {
@@ -82,6 +85,7 @@ export default function Navbar() {
 
   const navLinks = [
     { href: '/', label: 'Home', icon: '🏠' },
+    { href: '/dashboard', label: 'Dashboard', icon: '📊' },
     { href: '/projects', label: 'Projects', icon: '📂' },
     { href: '/profile', label: 'My Profile', icon: '👤' },
   ];
@@ -92,6 +96,9 @@ export default function Navbar() {
   };
 
   return (
+    <>
+    <NotificationProvider />
+    <ToastContainer />
     <nav className="sticky top-0 z-50 bg-gray-900 border-b border-gray-800 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
@@ -250,5 +257,6 @@ export default function Navbar() {
         )}
       </div>
     </nav>
+    </>
   );
 }
