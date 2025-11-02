@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-declare_id!("5BfnY1239UULVqKDtoaHGMyGhvc6DfUK1uZVC7ZEk29D");
+declare_id!("2nshdA67SGCmLo1gjiRjhkeQtv58GNmvW8uqajCWKbo2");
 
 #[program]
 pub mod devcol_solana {
@@ -662,7 +662,7 @@ pub enum Role {
     DevOps,
     QA,
     Designer,
-    PM,
+    Others,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, PartialEq, Eq, InitSpace)]

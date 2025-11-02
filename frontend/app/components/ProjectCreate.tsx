@@ -31,7 +31,7 @@ const Role = {
   DevOps: { DevOps: {} },
   QA: { QA: {} },
   Designer: { Designer: {} },
-  PM: { PM: {} },
+  Others: { Others: {} },
 } as const;
 
 type Tag = {

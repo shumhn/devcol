@@ -9,7 +9,7 @@ import type { Idl } from '@coral-xyz/anchor';
 import type { DeVColProgram } from '../types/program';
 
 // Program ID from your deployed contract
-export const PROGRAM_ID = new PublicKey('8LPmPiGm4FnNNrwmxMMKjr6fTFYAd8idxibcz1Cmq8Uu');
+export const PROGRAM_ID = new PublicKey('2nshdA67SGCmLo1gjiRjhkeQtv58GNmvW8uqajCWKbo2');
 
 export function useAnchorProgram() {
   const { connection } = useConnection();
