@@ -21,7 +21,7 @@ export default function CollabRequests() {
     
     try {
       // Fetch all collaboration requests
-      const allRequests = await program.account.collaborationRequest.all();
+      const allRequests = await (program.account as any).collaborationRequest.all();
       
       // Filter requests where the current user is the recipient (project owner)
       const myRequests = allRequests.filter(
