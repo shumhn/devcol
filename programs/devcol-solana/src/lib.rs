@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-declare_id!("2nshdA67SGCmLo1gjiRjhkeQtv58GNmvW8uqajCWKbo2");
+declare_id!("F1z678h8UgZin1Dmt3iEAiR9vF7KWytkaoeGd2hgbBRn");
 
 #[program]
 pub mod devcol_solana {
@@ -230,7 +230,15 @@ pub struct DeleteCollabRequest<'info> {
         require!(required_roles.len() <= 8, ErrorCode::TooManyRoles);
         for t in tech_stack.iter() { require!(t.len() <= 24, ErrorCode::TechTagTooLong); }
         for n in contribution_needs.iter() { require!(n.len() <= 24, ErrorCode::NeedTagTooLong); }
-        for r in required_roles.iter() { require!(r.needed > 0 && r.needed <= 10, ErrorCode::InvalidRoleCount); }
+        for r in required_roles.iter() {
+            require!(r.needed > 0 && r.needed <= 10, ErrorCode::InvalidRoleCount);
+            // If role is Others then a label is encouraged (optionally enforce non-empty)
+            if let Role::Others = r.role {
+                if let Some(lbl) = &r.label {
+                    require!(lbl.len() <= 24, ErrorCode::RoleLabelTooLong);
+                }
+            }
+        }
 
         let project = &mut ctx.accounts.project;
         let clock = Clock::get()?;
@@ -250,7 +258,21 @@ pub struct DeleteCollabRequest<'info> {
         project.contributors_count = 1; // Creator is first contributor
         project.is_active = true;
         project.bump = ctx.bumps.project;
-        project.required_roles = required_roles;
+        // Normalize labels: keep labels only for Others, clear for fixed roles
+        project.required_roles = required_roles
+            .into_iter()
+            .map(|mut rr| {
+                match rr.role {
+                    Role::Others => {
+                        // Keep label (already validated if present)
+                    },
+                    _ => {
+                        rr.label = None;
+                    }
+                }
+                rr
+            })
+            .collect();
 
         msg!("Project created: {} by {}", project.name, project.creator);
         Ok(())
@@ -355,11 +377,23 @@ pub struct DeleteCollabRequest<'info> {
         Ok(())
     }
 
+    /// Mark request as under review (only by project owner)
+    pub fn mark_under_review(ctx: Context<UpdateCollabRequest>) -> Result<()> {
+        let request = &mut ctx.accounts.collab_request;
+        require!(
+            request.status == RequestStatus::Pending,
+            ErrorCode::InvalidRequestStatus
+        );
+        request.status = RequestStatus::UnderReview;
+        msg!("Collaboration request marked under review: {:?}", request.key());
+        Ok(())
+    }
+
     /// Accept a collaboration request
     pub fn accept_collab_request(ctx: Context<UpdateCollabRequest>) -> Result<()> {
         let request = &mut ctx.accounts.collab_request;
         require!(
-            request.status == RequestStatus::Pending,
+            request.status == RequestStatus::Pending || request.status == RequestStatus::UnderReview,
             ErrorCode::InvalidRequestStatus
         );
 
@@ -381,7 +415,7 @@ pub struct DeleteCollabRequest<'info> {
     pub fn reject_collab_request(ctx: Context<UpdateCollabRequest>) -> Result<()> {
         let request = &mut ctx.accounts.collab_request;
         require!(
-            request.status == RequestStatus::Pending,
+            request.status == RequestStatus::Pending || request.status == RequestStatus::UnderReview,
             ErrorCode::InvalidRequestStatus
         );
 
@@ -670,11 +704,15 @@ pub struct RoleRequirement {
     pub role: Role,
     pub needed: u8,
     pub accepted: u8,
+    // Optional label for "Others" roles (max 24 chars)
+    #[max_len(24)]
+    pub label: Option<String>,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, PartialEq, Eq, InitSpace)]
 pub enum RequestStatus {
     Pending,
+    UnderReview,
     Accepted,
     Rejected,
 }
@@ -776,4 +814,7 @@ pub enum ErrorCode {
     
     #[msg("Role slot is full (all positions filled)")]
     RoleSlotFull,
+
+    #[msg("Role label must be 24 characters or less")]
+    RoleLabelTooLong,
 }

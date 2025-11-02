@@ -87,7 +87,8 @@ export default function ProjectCreate() {
   const [needs, setNeeds] = useState<string[]>([]);
   const [customTech, setCustomTech] = useState('');
   const [customNeed, setCustomNeed] = useState('');
-  const [roleRequirements, setRoleRequirements] = useState<Array<{role: keyof typeof Role, needed: number}>>([]);
+  const [roleRequirements, setRoleRequirements] = useState<Array<{role: keyof typeof Role, needed: number, label?: string}>>([]);
+  const [othersLabel, setOthersLabel] = useState('');
 
   // Validation errors
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -192,7 +193,7 @@ export default function ProjectCreate() {
           collabIntent,
           CollaborationLevel[collabLevel],
           ProjectStatus[status],
-          roleRequirements.map(r => ({ role: Role[r.role], needed: r.needed, accepted: 0 }))
+          roleRequirements.map(r => ({ role: { [r.role.toLowerCase()]: {} }, needed: r.needed, accepted: 0, label: r.role === 'Others' && r.label ? r.label : null }))
         )
         .accounts({
           project: projectPDA,
@@ -299,7 +300,9 @@ export default function ProjectCreate() {
                     setRoleRequirements(prev => {
                       const filtered = prev.filter(r => r.role !== roleKey);
                       if (needed > 0) {
-                        return [...filtered, { role: roleKey as keyof typeof Role, needed }];
+                        const base = { role: roleKey as keyof typeof Role, needed } as any;
+                        if (roleKey === 'Others') base.label = othersLabel.trim() || undefined;
+                        return [...filtered, base];
                       }
                       return filtered;
                     });
@@ -308,6 +311,20 @@ export default function ProjectCreate() {
                   placeholder="0"
                 />
                 <span className="text-gray-300 text-sm">{roleKey}</span>
+                {roleKey === 'Others' && (
+                  <input
+                    type="text"
+                    maxLength={24}
+                    value={othersLabel}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setOthersLabel(v);
+                      setRoleRequirements(prev => prev.map(r => r.role === 'Others' ? { ...r, label: v.trim() || undefined } : r));
+                    }}
+                    placeholder="Label (e.g., Solidity, DevRel)"
+                    className="flex-1 bg-gray-700 text-white rounded px-2 py-1 text-sm"
+                  />
+                )}
               </div>
             );
           })}

@@ -11,10 +11,12 @@ function StatusBadge({ status }: { status: string }) {
   const color =
     status === 'pending'
       ? 'bg-yellow-500'
+      : status === 'underReview'
+      ? 'bg-blue-500'
       : status === 'accepted'
       ? 'bg-green-600'
       : 'bg-red-600';
-  const label = status[0].toUpperCase() + status.slice(1);
+  const label = status === 'underReview' ? 'Under Review' : status[0].toUpperCase() + status.slice(1);
   return <span className={`text-xs px-2 py-1 rounded ${color} text-white`}>{label}</span>;
 }
 
@@ -45,7 +47,7 @@ export default function RequestDetailPage() {
 
   const [loading, setLoading] = useState(true);
   const [req, setReq] = useState<any | null>(null);
-  const [acting, setActing] = useState<'accept' | 'reject' | null>(null);
+  const [acting, setActing] = useState<'accept' | 'reject' | 'review' | null>(null);
   const [usernames, setUsernames] = useState<Record<string, string>>({});
 
   const shorten = (s: string) => `${s.slice(0, 4)}…${s.slice(-4)}`;
@@ -127,6 +129,24 @@ export default function RequestDetailPage() {
     }
   };
 
+  const markUnderReview = async () => {
+    if (!canUse || !req) return;
+    setActing('review');
+    try {
+      await (program as any).methods
+        .markUnderReview()
+        .accounts({ collabRequest: req.publicKey, projectOwner: publicKey, to: req.account.to, project: req.account.project })
+        .rpc();
+      const account = await (program as any).account.collaborationRequest.fetch(req.publicKey);
+      setReq({ publicKey: req.publicKey, account });
+    } catch (e) {
+      console.error('Mark under review error:', e);
+      alert('❌ Failed to mark under review: ' + (e as any)?.message || 'Unknown error');
+    } finally {
+      setActing(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-10 text-center">
@@ -150,9 +170,12 @@ export default function RequestDetailPage() {
 
   const status = Object.keys(req.account.status)[0];
   const isPending = status === 'pending';
+  const isUnderReview = status === 'underReview';
   const youAreRecipient = publicKey?.toString() === req.account.to.toString();
   const youAreSender = publicKey?.toString() === req.account.from.toString();
   const { gh, tw, body } = parseProofs(req.account.message || '');
+  const desiredRole = req.account.desiredRole ? Object.keys(req.account.desiredRole)[0] : null;
+  const roleLabel = desiredRole ? desiredRole.replace(/^[a-z]/, (c: string) => c.toUpperCase()) : 'Not specified';
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -192,6 +215,13 @@ export default function RequestDetailPage() {
           </div>
         </div>
 
+        <div className="mt-6">
+          <h2 className="font-semibold text-white mb-2">Requested Role</h2>
+          <div className="bg-purple-900 text-purple-200 px-3 py-2 rounded inline-block">
+            🎭 {roleLabel}
+          </div>
+        </div>
+
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <h2 className="font-semibold text-white mb-2">Proof of Work</h2>
@@ -222,26 +252,40 @@ export default function RequestDetailPage() {
         </div>
 
         <div className="mt-8 flex flex-col sm:flex-row gap-3">
-          {youAreRecipient && (
+          {youAreRecipient && isPending && (
+            <button
+              onClick={markUnderReview}
+              disabled={acting === 'review'}
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold disabled:opacity-50"
+            >
+              {acting === 'review' ? '⏳ Marking...' : '🔍 Mark Under Review'}
+            </button>
+          )}
+          {youAreRecipient && (isPending || isUnderReview) && (
             <>
               <button
-                disabled={!isPending || acting === 'accept'}
+                disabled={acting === 'accept'}
                 onClick={accept}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg disabled:opacity-50"
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold disabled:opacity-50"
               >
-                {acting === 'accept' ? 'Processing…' : 'Accept'}
+                {acting === 'accept' ? '⏳ Accepting...' : '✅ Accept'}
               </button>
               <button
-                disabled={!isPending || acting === 'reject'}
                 onClick={reject}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg disabled:opacity-50"
+                disabled={acting === 'reject'}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold disabled:opacity-50"
               >
-                Reject
+                {acting === 'reject' ? '⏳ Rejecting...' : '❌ Reject'}
               </button>
             </>
           )}
-          {youAreSender && !youAreRecipient && (
-            <div className="text-gray-400">You sent this request.</div>
+          {youAreSender && (
+            <div className="text-gray-400 text-center py-3">
+              {isPending && 'Waiting for review...'}
+              {isUnderReview && 'Under review by project owner'}
+              {status === 'accepted' && '✅ Your request was accepted!'}
+              {status === 'rejected' && '❌ Your request was rejected'}
+            </div>
           )}
         </div>
       </div>

@@ -10,10 +10,12 @@ function StatusBadge({ status }: { status: string }) {
   const color =
     status === 'pending'
       ? 'bg-yellow-500'
+      : status === 'underReview'
+      ? 'bg-blue-500'
       : status === 'accepted'
       ? 'bg-green-600'
       : 'bg-red-600';
-  const label = status[0].toUpperCase() + status.slice(1);
+  const label = status === 'underReview' ? 'Under Review' : status[0].toUpperCase() + status.slice(1);
   return <span className={`text-xs px-2 py-1 rounded ${color} text-white`}>{label}</span>;
 }
 

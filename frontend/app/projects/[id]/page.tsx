@@ -135,7 +135,7 @@ export default function ProjectDetailPage() {
         alert('Please select a desired role for this project.');
         return;
       }
-      const roleReq = account.requiredRoles.find((r: any) => r.role === desiredRole);
+      const roleReq = account.requiredRoles.find((r: any) => Object.keys(r.role || {})[0] === desiredRole);
       if (!roleReq || roleReq.accepted >= roleReq.needed) {
         alert('Selected role is no longer available. Please choose another.');
         return;
@@ -478,7 +478,14 @@ export default function ProjectDetailPage() {
                   return (
                     <div key={idx} className={`flex items-center justify-between p-3 rounded-lg border ${isFull ? 'bg-gray-700 border-gray-600' : 'bg-gray-700 border-green-600'}`}>
                       <div className="flex items-center space-x-2">
-                        <span className="text-white font-medium">{roleReq.role}</span>
+                        <span className="text-white font-medium">
+                          {(() => {
+                            const key = (Object.keys(roleReq.role || {})[0] || '');
+                            const label = roleReq.label as string | undefined;
+                            const pretty = key.replace(/^[a-z]/, (c) => c.toUpperCase());
+                            return key === 'others' && label ? `${pretty} — ${label}` : pretty;
+                          })()}
+                        </span>
                         {isFull && <span className="text-xs bg-red-600 text-white px-2 py-1 rounded">Full</span>}
                       </div>
                       <div className="text-right">
@@ -624,8 +631,13 @@ export default function ProjectDetailPage() {
                   {account.requiredRoles
                     .filter((roleReq: any) => roleReq.accepted < roleReq.needed)
                     .map((roleReq: any, idx: number) => (
-                      <option key={idx} value={roleReq.role}>
-                        {roleReq.role} ({roleReq.accepted}/{roleReq.needed} slots filled)
+                      <option key={idx} value={Object.keys(roleReq.role || {})[0]}>
+                        {(() => {
+                          const key = (Object.keys(roleReq.role || {})[0] || '');
+                          const label = roleReq.label as string | undefined;
+                          const pretty = key.replace(/^[a-z]/, (c) => c.toUpperCase());
+                          return key === 'others' && label ? `${pretty} — ${label}` : pretty;
+                        })()} ({roleReq.accepted}/{roleReq.needed} slots filled)
                       </option>
                     ))}
                 </select>

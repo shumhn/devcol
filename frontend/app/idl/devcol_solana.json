@@ -1,5 +1,5 @@
 {
-  "address": "2nshdA67SGCmLo1gjiRjhkeQtv58GNmvW8uqajCWKbo2",
+  "address": "F1z678h8UgZin1Dmt3iEAiR9vF7KWytkaoeGd2hgbBRn",
   "metadata": {
     "name": "devcol_solana",
     "version": "0.1.0",
@@ -487,6 +487,103 @@
           "relations": [
             "user"
           ]
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "mark_under_review",
+      "docs": [
+        "Mark request as under review (only by project owner)"
+      ],
+      "discriminator": [
+        86,
+        42,
+        244,
+        212,
+        84,
+        84,
+        51,
+        213
+      ],
+      "accounts": [
+        {
+          "name": "collab_request",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  108,
+                  108,
+                  97,
+                  98,
+                  95,
+                  114,
+                  101,
+                  113,
+                  117,
+                  101,
+                  115,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "collab_request.from",
+                "account": "CollaborationRequest"
+              },
+              {
+                "kind": "account",
+                "path": "collab_request.project",
+                "account": "CollaborationRequest"
+              }
+            ]
+          }
+        },
+        {
+          "name": "project_owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "to",
+          "relations": [
+            "collab_request"
+          ]
+        },
+        {
+          "name": "project",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  106,
+                  101,
+                  99,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "project.creator",
+                "account": "Project"
+              },
+              {
+                "kind": "account",
+                "path": "project.name",
+                "account": "Project"
+              }
+            ]
+          }
         }
       ],
       "args": []
@@ -1176,6 +1273,11 @@
       "code": 6020,
       "name": "RoleSlotFull",
       "msg": "Role slot is full (all positions filled)"
+    },
+    {
+      "code": 6021,
+      "name": "RoleLabelTooLong",
+      "msg": "Role label must be 24 characters or less"
     }
   ],
   "types": [
@@ -1399,6 +1501,9 @@
             "name": "Pending"
           },
           {
+            "name": "UnderReview"
+          },
+          {
             "name": "Accepted"
           },
           {
@@ -1431,7 +1536,7 @@
             "name": "Designer"
           },
           {
-            "name": "PM"
+            "name": "Others"
           }
         ]
       }
@@ -1456,6 +1561,12 @@
           {
             "name": "accepted",
             "type": "u8"
+          },
+          {
+            "name": "label",
+            "type": {
+              "option": "string"
+            }
           }
         ]
       }

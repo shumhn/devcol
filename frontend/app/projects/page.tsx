@@ -76,9 +76,9 @@ export default function ProjectsPage() {
       const level = { intermediate: {} };
       const status = { inProgress: {} };
       const roleRequirements = [
-        { role: { Frontend: {} }, needed: 2, accepted: 0 },
-        { role: { Backend: {} }, needed: 1, accepted: 0 },
-        { role: { Fullstack: {} }, needed: 1, accepted: 0 },
+        { role: { frontend: {} }, needed: 2, accepted: 0 },
+        { role: { backend: {} }, needed: 1, accepted: 0 },
+        { role: { fullstack: {} }, needed: 1, accepted: 0 },
       ];
 
       // Derive PDA
