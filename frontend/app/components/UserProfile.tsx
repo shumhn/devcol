@@ -29,7 +29,7 @@ export default function UserProfile() {
     
     try {
       const [userPDA] = getUserPDA(publicKey);
-      const userAccount = await program.account.user.fetch(userPDA);
+      const userAccount = await (program.account as any).user.fetch(userPDA);
       setUser(userAccount);
     } catch (error) {
       console.log('User not found, needs to create profile');
@@ -44,14 +44,15 @@ export default function UserProfile() {
     try {
       const [userPDA] = getUserPDA(publicKey);
       
-      await program.methods
+      const tx = (program as any).methods
         .createUser(formData.username, formData.githubLink, formData.bio)
         .accounts({
           user: userPDA,
           signer: publicKey,
           systemProgram: SystemProgram.programId,
-        })
-        .rpc();
+        });
+      
+      await tx.rpc();
 
       alert('✅ User profile created successfully!');
       await fetchUser();

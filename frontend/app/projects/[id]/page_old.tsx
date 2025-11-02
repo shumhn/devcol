@@ -445,7 +445,7 @@ export default function ProjectDetailPage() {
                   key={idx}
                   className="px-3 py-2 rounded bg-blue-900 text-blue-200 font-medium"
                 >
-                  {TECH_ICONS[tech.value] || '💻'} {tech.value}
+                  💻 {tech.value}
                 </span>
               ))}
             </div>

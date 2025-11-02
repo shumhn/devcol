@@ -32,7 +32,7 @@ export default function ProjectList() {
     if (!program) return;
     
     try {
-      const allProjects = await program.account.project.all();
+      const allProjects = await (program.account as any).project.all();
       setProjects(allProjects);
     } catch (error) {
       console.error('Error fetching projects:', error);
@@ -46,7 +46,7 @@ export default function ProjectList() {
     try {
       const [projectPDA] = getProjectPDA(publicKey, formData.name);
       
-      await program.methods
+      const tx = (program as any).methods
         .createProject(
           formData.name,
           formData.description,
@@ -57,8 +57,9 @@ export default function ProjectList() {
           project: projectPDA,
           creator: publicKey,
           systemProgram: SystemProgram.programId,
-        })
-        .rpc();
+        });
+      
+      await tx.rpc();
 
       alert('✅ Project created successfully!');
       await fetchProjects();
@@ -79,15 +80,16 @@ export default function ProjectList() {
     try {
       const [collabRequestPDA] = getCollabRequestPDA(publicKey, project.publicKey);
       
-      await program.methods
+      const tx = (program as any).methods
         .sendCollabRequest(requestMessage)
         .accounts({
           collabRequest: collabRequestPDA,
           sender: publicKey,
           project: project.publicKey,
           systemProgram: SystemProgram.programId,
-        })
-        .rpc();
+        });
+      
+      await tx.rpc();
 
       alert('✅ Collaboration request sent!');
       setSelectedProject(null);
