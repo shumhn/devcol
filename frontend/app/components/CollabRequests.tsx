@@ -39,7 +39,7 @@ export default function CollabRequests() {
     
     setLoading(true);
     try {
-      await program.methods
+      await (program as any).methods
         .acceptCollabRequest()
         .accounts({
           collabRequest: request.publicKey,
@@ -63,7 +63,7 @@ export default function CollabRequests() {
     
     setLoading(true);
     try {
-      await program.methods
+      await (program as any).methods
         .rejectCollabRequest()
         .accounts({
           collabRequest: request.publicKey,
