@@ -38,15 +38,26 @@ const IPFS_GATEWAY = 'https://gateway.pinata.cloud/ipfs/';
  * In production, integrate with Pinata, Web3.Storage, or NFT.Storage
  */
 export async function uploadImageToIPFS(file: File): Promise<string> {
-  // For MVP, we'll convert to base64 and store in metadata
-  // In production, use actual IPFS upload
+  // For MVP, we'll convert to base64 and store locally, return a short mock CID
+  // In production, use actual IPFS upload (Pinata/Web3.Storage)
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onloadend = () => {
+    reader.onloadend = async () => {
       const base64String = reader.result as string;
-      // Simulate IPFS hash (in production, this would be real IPFS upload)
-      const mockHash = `data:${file.type};base64,${base64String.split(',')[1]}`;
-      resolve(mockHash);
+      
+      // Generate a short, realistic mock IPFS CID (Qm... format, ~46 chars)
+      const encoder = new TextEncoder();
+      const data = encoder.encode(base64String.slice(0, 100) + file.name + Date.now());
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 44);
+      const mockCID = `Qm${hashHex}`; // Realistic IPFS CIDv0 format
+      
+      // Store actual image data locally for retrieval (not on-chain)
+      localStorage.setItem(`ipfs_image_${mockCID}`, base64String);
+      
+      console.log('Mock IPFS upload: returning CID', mockCID, '(', mockCID.length, 'chars)');
+      resolve(mockCID);
     };
     reader.onerror = reject;
     reader.readAsDataURL(file);

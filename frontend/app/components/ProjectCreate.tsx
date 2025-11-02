@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { SystemProgram } from '@solana/web3.js';
 import { useAnchorProgram, getUserPDA } from '../hooks/useAnchorProgram';
@@ -65,6 +66,7 @@ const NEED_PRESETS: Tag[] = [
 ];
 
 export default function ProjectCreate() {
+  const router = useRouter();
   const { publicKey } = useWallet();
   const { program } = useAnchorProgram();
 
@@ -92,6 +94,57 @@ export default function ProjectCreate() {
 
   // Validation errors
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Estimate serialized size for on-chain Project account (approximate)
+  const estimateSize = useMemo(() => {
+    // helper sizes: Anchor borsh strings = 4 bytes length + utf8 bytes
+    const s = (str: string) => 4 + new TextEncoder().encode(str).length;
+    // vec<string>: 4 bytes length + sum of string sizes
+    const vs = (arr: string[]) => 4 + arr.reduce((acc, t) => acc + s(t), 0);
+    // Option<String>: 1 byte tag + (if some) string size
+    const optS = (maybe?: string) => 1 + (maybe ? s(maybe) : 0);
+    // RoleRequirement: role enum (u8), needed (u8), accepted (u8), label Option<String>
+    const roleReq = (label?: string) => 1 + 1 + 1 + optS(label);
+    // Vec<RoleRequirement>
+    const vRoles = (roles: Array<{role: keyof typeof Role, needed: number, label?: string}>) => 4 + roles.reduce((acc, r) => acc + roleReq(r.role === 'Others' ? r.label : undefined), 0);
+    // Fixed fields: 8 discriminator + 32 creator pubkey + 8 timestamp + struct padding
+    let base = 8 + 32 + 8 + 64; // add padding for alignment and hidden fields
+    // dynamic fields
+    base += s(name);
+    base += s(description);
+    base += s(githubUrl);
+    // Logo: only IPFS CID hash is stored on-chain (~46 chars), not the preview data
+    base += logoPreview ? s('QmXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX') : 4; // typical CID or empty string
+    base += vs(techStack);
+    base += vs(needs);
+    base += s(collabIntent);
+    // enums for collab level and status (u8 each)
+    base += 1 + 1;
+    base += vRoles(roleRequirements);
+    // Add 50% safety margin due to serialization overhead/padding
+    return Math.round(base * 1.5);
+  }, [name, description, githubUrl, logoPreview, techStack, needs, collabIntent, roleRequirements]);
+
+  const MAX_ACCOUNT_BYTES = 4096;
+  const RECOMMENDED_MAX = 2800; // much more conservative
+
+  const autoCompact = () => {
+    const trimStr = (s: string) => s.trim();
+    const capLen = (s: string, n: number) => (s.length > n ? s.slice(0, n) : s);
+    const dedupe = (arr: string[]) => Array.from(new Set(arr));
+
+    // More aggressive, but safe, limits for one-click compaction
+    setDescription((d) => capLen(trimStr(d), 700));
+    setCollabIntent((v) => capLen(trimStr(v), 200));
+    setTechStack((ts) => dedupe(ts.map(t => capLen(trimStr(t), 16))).slice(0, 8));
+    setNeeds((ns) => dedupe(ns.map(t => capLen(trimStr(t), 16))).slice(0, 6));
+    setRoleRequirements((rs) => rs.slice(0, 6).map(r => ({
+      ...r,
+      needed: Math.max(0, Math.min(5, r.needed || 0)),
+      ...(r.role === 'Others' ? { label: r.label ? capLen(trimStr(r.label), 16) : undefined } : {})
+    })));
+    alert('Content compacted. Review the fields and try submitting again.');
+  };
 
   const canSubmit = useMemo(() => {
     return (
@@ -141,11 +194,11 @@ export default function ProjectCreate() {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        alert('❌ Logo must be less than 5MB');
+        alert('Logo must be less than 5MB');
         return;
       }
       if (!file.type.startsWith('image/')) {
-        alert('❌ Please upload an image file');
+        alert('Please upload an image file');
         return;
       }
       setLogoFile(file);
@@ -161,15 +214,54 @@ export default function ProjectCreate() {
     if (!publicKey || !program) return;
     if (!canSubmit || loading) return;
 
+    // Sanitize and enforce strict limits to avoid on-chain size overruns
+    const trimStr = (s: string) => s.trim();
+    const capLen = (s: string, n: number) => (s.length > n ? s.slice(0, n) : s);
+    const dedupe = (arr: string[]) => Array.from(new Set(arr));
+
+    const safeName = capLen(trimStr(name), 50);
+    const safeDesc = capLen(trimStr(description), 500); // reduced
+    const safeGithub = capLen(trimStr(githubUrl), 100);
+    const safeIntent = capLen(trimStr(collabIntent), 150); // reduced
+    const safeTech = dedupe(techStack.map(t => capLen(trimStr(t), 16))).slice(0, 6); // reduced
+    const safeNeeds = dedupe(needs.map(t => capLen(trimStr(t), 16))).slice(0, 5); // reduced
+    const safeRoles = roleRequirements.slice(0, 4).map(r => ({ // reduced to 4
+      role: r.role,
+      needed: Math.max(0, Math.min(5, r.needed || 0)),
+      label: r.role === 'Others' && r.label ? capLen(trimStr(r.label), 16) : undefined,
+    }));
+
+    if (safeGithub.length === 0 || safeGithub.length > 100) {
+      alert('GitHub URL must be 1–100 characters.');
+      return;
+    }
+    if (safeTech.length === 0) {
+      alert('Select at least one tech.');
+      return;
+    }
+    if (safeNeeds.length === 0) {
+      alert('Select at least one contribution need.');
+      return;
+    }
+
+    // warn early if estimated size is too big
+    if (estimateSize > RECOMMENDED_MAX) {
+      alert(
+        'Your project data is currently too large (' +
+          estimateSize +
+          ' bytes, max ~' + RECOMMENDED_MAX +
+          '). Shorten description and reduce tags (tech/contribution), or decrease role labels.'
+      );
+      return;
+    }
     setLoading(true);
     try {
       // Ensure profile exists
       const [userPda] = getUserPDA(publicKey);
       const userAcct = await (program as any).account.user.fetchNullable(userPda);
       if (!userAcct) {
-        alert('❌ You must create your profile before creating a project.');
-        // Redirect to profile page
-        window.location.href = '/profile';
+        alert('You must create your profile before creating a project.');
+        router.push('/profile');
         return;
       }
       // Upload logo to IPFS if provided
@@ -184,16 +276,16 @@ export default function ProjectCreate() {
 
       await (program as any).methods
         .createProject(
-          name,
-          description,
-          githubUrl,
+          safeName,
+          safeDesc,
+          safeGithub,
           logoHash,
-          techStack,
-          needs,
-          collabIntent,
+          safeTech,
+          safeNeeds,
+          safeIntent,
           CollaborationLevel[collabLevel],
           ProjectStatus[status],
-          roleRequirements.map(r => ({ role: { [r.role.toLowerCase()]: {} }, needed: r.needed, accepted: 0, label: r.role === 'Others' && r.label ? r.label : null }))
+          safeRoles.map(r => ({ role: { [r.role.toLowerCase()]: {} }, needed: r.needed, accepted: 0, label: r.role === 'Others' && r.label ? r.label : null }))
         )
         .accounts({
           project: projectPDA,
@@ -202,28 +294,33 @@ export default function ProjectCreate() {
           systemProgram: SystemProgram.programId,
         })
         .rpc();
-
-      alert('✅ Project created successfully!');
-      // Reset form
-      setName('');
-      setDescription('');
-      setGithubUrl('');
-      setCollabIntent('');
-      setTechStack([]);
-      setNeeds([]);
-      setCollabLevel('Intermediate');
-      setStatus('InProgress');
+      // Navigate to the newly created project detail page
+      try {
+        // projectPDA is already derived above
+        // Small delay to allow RPC indexing
+        setTimeout(() => {
+          router.replace(`/projects/${projectPDA.toBase58()}`);
+        }, 300);
+      } catch {
+        // Fallback: go to projects list
+        router.push('/projects');
+      }
     } catch (error: any) {
       console.error('Create project error:', error);
+      const msg = String(error?.message || '');
+      if (msg.includes('encoding overruns Buffer')) {
+        alert('Your project data is too large for a single Solana account. Please shorten the description or reduce the number/length of tags and try again.');
+        return;
+      }
       if (error.message?.includes('already in use')) {
-        alert('❌ A project with this name already exists for your wallet. Try a different name.');
+        alert('A project with this name already exists for your wallet. Try a different name.');
       } else if (error.message?.includes('too many')) {
-        alert('❌ Too many tags selected.');
+        alert('Too many tags selected.');
       } else {
         try {
           if (error.getLogs) console.error('Logs:', await error.getLogs());
         } catch {}
-        alert('❌ Error: ' + (error.message || 'Unknown error'));
+        alert('Error: ' + (error.message || 'Unknown error'));
       }
     } finally {
       setLoading(false);
@@ -232,42 +329,41 @@ export default function ProjectCreate() {
 
   if (!publicKey) {
     return (
-      <div className="bg-gray-800 rounded-lg p-8 text-center">
-        <div className="text-6xl mb-4">🔐</div>
-        <h2 className="text-2xl font-bold text-white mb-2">Connect Your Wallet</h2>
-        <p className="text-gray-400">Connect your Phantom wallet to create a project</p>
+      <div className="bg-white border border-gray-200 rounded-xl p-8 text-center shadow-sm">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Connect Your Wallet</h2>
+        <p className="text-gray-600">Connect your Phantom wallet to create a project</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-gray-800 rounded-lg p-6 max-w-3xl mx-auto">
-      <h2 className="text-2xl font-bold text-white mb-6">🚀 Create a New Project</h2>
+    <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8 max-w-3xl mx-auto shadow-sm">
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">Create a New Project</h2>
 
       {/* Project Name */}
       <div className="mb-4">
-        <label className="block text-gray-300 mb-2 font-semibold">Project Name *</label>
+        <label className="block text-gray-700 mb-2 font-semibold">Project Name *</label>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           maxLength={50}
-          className="w-full bg-gray-700 text-white rounded px-4 py-3"
+          className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#00D4AA]/30 focus:border-[#00D4AA]"
           placeholder="DevCol - Web3 Collaboration Platform"
         />
         <div className="text-xs text-gray-500 mt-1">{name.length}/50</div>
-        {errors.name && <p className="text-red-400 text-sm mt-1">⚠️ {errors.name}</p>}
+        {errors.name && <p className="text-red-600 text-sm mt-1">{errors.name}</p>}
       </div>
 
       {/* Project Logo */}
       <div className="mb-4">
-        <label className="block text-gray-300 mb-2 font-semibold">Project Logo (optional)</label>
+        <label className="block text-gray-700 mb-2 font-semibold">Project Logo (optional)</label>
         <div className="flex items-center space-x-4">
-          <div className="w-24 h-24 rounded-lg bg-gray-700 flex items-center justify-center overflow-hidden">
+          <div className="w-24 h-24 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden">
             {logoPreview ? (
               <img src={logoPreview} alt="Logo preview" className="w-full h-full object-cover" />
             ) : (
-              <span className="text-4xl">🖼️</span>
+              <span className="text-sm text-gray-500">No logo</span>
             )}
           </div>
           <div className="flex-1">
@@ -275,7 +371,7 @@ export default function ProjectCreate() {
               type="file"
               accept="image/*"
               onChange={handleLogoUpload}
-              className="w-full bg-gray-700 text-white rounded px-3 py-2 text-sm"
+              className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#00D4AA]/30 focus:border-[#00D4AA]"
             />
             <p className="text-xs text-gray-500 mt-1">Max 5MB • JPG, PNG, GIF</p>
           </div>
@@ -284,7 +380,7 @@ export default function ProjectCreate() {
 
       {/* Role Requirements */}
       <div className="mb-4">
-        <label className="block text-gray-300 mb-2 font-semibold">Contributor Roles Needed (optional)</label>
+        <label className="block text-gray-700 mb-2 font-semibold">Contributor Roles Needed (optional)</label>
         <div className="space-y-2">
           {Object.keys(Role).map((roleKey) => {
             const existing = roleRequirements.find(r => r.role === roleKey);
@@ -307,10 +403,10 @@ export default function ProjectCreate() {
                       return filtered;
                     });
                   }}
-                  className="w-16 bg-gray-700 text-white rounded px-2 py-1 text-sm"
+                  className="w-16 bg-white border border-gray-300 text-gray-900 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-[#00D4AA]/30 focus:border-[#00D4AA]"
                   placeholder="0"
                 />
-                <span className="text-gray-300 text-sm">{roleKey}</span>
+                <span className="text-gray-700 text-sm">{roleKey}</span>
                 {roleKey === 'Others' && (
                   <input
                     type="text"
@@ -322,52 +418,52 @@ export default function ProjectCreate() {
                       setRoleRequirements(prev => prev.map(r => r.role === 'Others' ? { ...r, label: v.trim() || undefined } : r));
                     }}
                     placeholder="Label (e.g., Solidity, DevRel)"
-                    className="flex-1 bg-gray-700 text-white rounded px-2 py-1 text-sm"
+                    className="flex-1 bg-white border border-gray-300 text-gray-900 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-[#00D4AA]/30 focus:border-[#00D4AA]"
                   />
                 )}
               </div>
             );
           })}
         </div>
-        <p className="text-xs text-gray-500 mt-1">Specify how many contributors you need for each role (max 5 per role, total roles will be limited)</p>
+        <p className="text-xs text-gray-500 mt-1">Specify how many contributors you need for each role (max 5 per role)</p>
       </div>
 
       {/* Project Description */}
       <div className="mb-4">
-        <label className="block text-gray-300 mb-2 font-semibold">Description *</label>
+        <label className="block text-gray-700 mb-2 font-semibold">Description * (max 500 chars)</label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={6}
-          maxLength={1000}
-          className="w-full bg-gray-700 text-white rounded px-4 py-3"
+          maxLength={500}
+          className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#00D4AA]/30 focus:border-[#00D4AA]"
           placeholder="Describe what your project does, tech, goals, roadmap, and why collaborators would love it..."
         />
-        <div className="text-xs text-gray-500 mt-1">{description.length}/1000</div>
-        {errors.description && <p className="text-red-400 text-sm mt-1">⚠️ {errors.description}</p>}
+        <div className="text-xs text-gray-500 mt-1">{description.length}/500</div>
+        {errors.description && <p className="text-red-600 text-sm mt-1">{errors.description}</p>}
       </div>
 
       {/* GitHub URL */}
       <div className="mb-4">
-        <label className="block text-gray-300 mb-2 font-semibold">GitHub Repository URL *</label>
+        <label className="block text-gray-700 mb-2 font-semibold">GitHub Repository URL *</label>
         <input
           type="url"
           value={githubUrl}
           onChange={(e) => setGithubUrl(e.target.value)}
-          className="w-full bg-gray-700 text-white rounded px-4 py-3"
+          className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#00D4AA]/30 focus:border-[#00D4AA]"
           placeholder="https://github.com/username/repo-name"
         />
       </div>
 
       {/* Collaboration Level */}
       <div className="mb-4">
-        <label className="block text-gray-300 mb-2 font-semibold">Collaboration Level *</label>
+        <label className="block text-gray-700 mb-2 font-semibold">Collaboration Level *</label>
         <div className="flex flex-wrap gap-2">
           {(['Beginner','Intermediate','Advanced','AllLevels'] as const).map((lvl) => (
             <button
               key={lvl}
               onClick={() => setCollabLevel(lvl)}
-              className={`px-3 py-2 rounded border ${collabLevel===lvl? 'bg-blue-600 border-blue-500 text-white':'bg-gray-700 border-gray-600 text-gray-200'}`}
+              className={`px-3 py-2 rounded-lg border text-sm ${collabLevel===lvl? 'bg-[#00D4AA] border-[#00D4AA] text-white':'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'}`}
             >
               {lvl}
             </button>
@@ -375,19 +471,42 @@ export default function ProjectCreate() {
         </div>
       </div>
 
+      {/* Project Status */}
+      <div className="mb-4">
+        <label className="block text-gray-700 mb-2 font-semibold">Project Status *</label>
+        <div className="flex flex-wrap gap-2">
+          {([
+            { key: 'JustStarted', label: 'Just Started' },
+            { key: 'InProgress', label: 'In Progress' },
+            { key: 'NearlyComplete', label: 'Nearly Complete' },
+            { key: 'Completed', label: 'Completed' },
+            { key: 'ActiveDev', label: 'Active Development' },
+            { key: 'OnHold', label: 'On Hold' },
+          ] as const).map((opt) => (
+            <button
+              key={opt.key}
+              onClick={() => setStatus(opt.key)}
+              className={`px-3 py-2 rounded-lg border text-sm ${status===opt.key? 'bg-[#00D4AA] border-[#00D4AA] text-white':'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Contribution Needs */}
       <div className="mb-4">
-        <label className="block text-gray-300 mb-2 font-semibold">What help do you need? *</label>
+        <label className="block text-gray-700 mb-2 font-semibold">What help do you need? *</label>
         <div className="flex flex-wrap gap-2 mb-2">
           {NEED_PRESETS.map((t) => (
             <button
               type="button"
               key={t.key}
               onClick={() => toggleTag(needs, t.key, setNeeds, 10)}
-              className={`px-3 py-2 rounded border ${needs.includes(t.key)? 'bg-purple-600 border-purple-500 text-white':'bg-gray-700 border-gray-600 text-gray-200'}`}
+              className={`px-3 py-2 rounded-lg border text-sm ${needs.includes(t.key)? 'bg-teal-500 border-teal-500 text-white':'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'}`}
               title={t.label}
             >
-              <span className="mr-1">{t.icon}</span>{t.label}
+              {t.label}
             </button>
           ))}
         </div>
@@ -396,34 +515,51 @@ export default function ProjectCreate() {
             type="text"
             value={customNeed}
             onChange={(e) => setCustomNeed(e.target.value)}
-            className="flex-1 bg-gray-700 text-white rounded px-3 py-2"
+            className="flex-1 bg-white border border-gray-300 text-gray-900 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#00D4AA]/30 focus:border-[#00D4AA]"
             placeholder="Add custom need (max 24 chars)"
             maxLength={24}
           />
           <button
             type="button"
             onClick={() => { addCustom(customNeed, setNeeds, 10); setCustomNeed(''); }}
-            className="px-4 py-2 rounded bg-gray-700 hover:bg-gray-600 text-white"
+            className="px-4 py-2 rounded-lg bg-[#00D4AA] hover:bg-[#00B894] text-white"
           >
             + Add
           </button>
         </div>
-        {errors.needs && <p className="text-red-400 text-sm mt-1">⚠️ {errors.needs}</p>}
+        {needs.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {needs.map((tag) => (
+              <span key={tag} className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 border border-gray-300 text-sm text-gray-800">
+                {tag}
+                <button
+                  type="button"
+                  onClick={() => setNeeds(needs.filter((t) => t !== tag))}
+                  className="text-gray-500 hover:text-gray-800"
+                  aria-label={`Remove ${tag}`}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+        {errors.needs && <p className="text-red-600 text-sm mt-1">{errors.needs}</p>}
       </div>
 
       {/* Tech Stack */}
       <div className="mb-4">
-        <label className="block text-gray-300 mb-2 font-semibold">Tech Stack *</label>
+        <label className="block text-gray-700 mb-2 font-semibold">Tech Stack *</label>
         <div className="flex flex-wrap gap-2 mb-2">
           {TECH_PRESETS.map((t) => (
             <button
               type="button"
               key={t.key}
               onClick={() => toggleTag(techStack, t.key, setTechStack, 12)}
-              className={`px-3 py-2 rounded border ${techStack.includes(t.key)? 'bg-blue-600 border-blue-500 text-white':'bg-gray-700 border-gray-600 text-gray-200'}`}
+              className={`px-3 py-2 rounded-lg border text-sm ${techStack.includes(t.key)? 'bg-teal-500 border-teal-500 text-white':'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'}`}
               title={t.label}
             >
-              <span className="mr-1">{t.icon}</span>{t.label}
+              {t.label}
             </button>
           ))}
         </div>
@@ -432,57 +568,100 @@ export default function ProjectCreate() {
             type="text"
             value={customTech}
             onChange={(e) => setCustomTech(e.target.value)}
-            className="flex-1 bg-gray-700 text-white rounded px-3 py-2"
+            className="flex-1 bg-white border border-gray-300 text-gray-900 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
             placeholder="Add custom tech (max 24 chars)"
             maxLength={24}
           />
           <button
             type="button"
             onClick={() => { addCustom(customTech, setTechStack, 12); setCustomTech(''); }}
-            className="px-4 py-2 rounded bg-gray-700 hover:bg-gray-600 text-white"
+            className="px-4 py-2 rounded-lg bg-teal-500 hover:bg-teal-600 text-white"
           >
             + Add
           </button>
         </div>
-        {errors.techStack && <p className="text-red-400 text-sm mt-1">⚠️ {errors.techStack}</p>}
+        {techStack.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {techStack.map((tag) => (
+              <span key={tag} className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 border border-gray-300 text-sm text-gray-800">
+                {tag}
+                <button
+                  type="button"
+                  onClick={() => setTechStack(techStack.filter((t) => t !== tag))}
+                  className="text-gray-500 hover:text-gray-800"
+                  aria-label={`Remove ${tag}`}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+        {errors.techStack && <p className="text-red-600 text-sm mt-1">{errors.techStack}</p>}
       </div>
 
       {/* Collaboration Intent */}
       <div className="mb-6">
-        <label className="block text-gray-300 mb-2 font-semibold">What do you want from collaboration? *</label>
+        <label className="block text-gray-700 mb-2 font-semibold">What do you want from collaboration? * (max 150 chars)</label>
         <textarea
           value={collabIntent}
           onChange={(e) => setCollabIntent(e.target.value)}
           rows={4}
-          maxLength={300}
-          className="w-full bg-gray-700 text-white rounded px-4 py-3"
-          placeholder="Be clear: mentorship, long-term teammates, contributors for specific module, bug bounties, etc."
+          maxLength={150}
+          className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#00D4AA]/30 focus:border-[#00D4AA]"
+          placeholder="E.g., Long-term co-founders for smart contract work"
         />
-        <div className="text-xs text-gray-500 mt-1">{collabIntent.length}/300</div>
-        {errors.collabIntent && <p className="text-red-400 text-sm mt-1">⚠️ {errors.collabIntent}</p>}
+        <div className="text-xs text-gray-500 mt-1">{collabIntent.length}/150</div>
+        {errors.collabIntent && <p className="text-red-600 text-sm mt-1">{errors.collabIntent}</p>}
       </div>
 
-      {/* Status */}
+      {/* Project Status (light theme) */}
       <div className="mb-6">
-        <label className="block text-gray-300 mb-2 font-semibold">Project Status *</label>
+        <label className="block text-gray-700 mb-2 font-semibold">Project Status *</label>
         <div className="grid grid-cols-2 gap-2">
           {([
-            { key: 'JustStarted', label: '🌱 Just Started' },
-            { key: 'InProgress', label: '🚧 In Progress' },
-            { key: 'NearlyComplete', label: '🎯 Nearly Complete' },
-            { key: 'Completed', label: '✅ Completed' },
-            { key: 'ActiveDev', label: '🔥 Active Development' },
-            { key: 'OnHold', label: '⏸️ On Hold' },
+            { key: 'JustStarted', label: 'Just Started' },
+            { key: 'InProgress', label: 'In Progress' },
+            { key: 'NearlyComplete', label: 'Nearly Complete' },
+            { key: 'Completed', label: 'Completed' },
+            { key: 'ActiveDev', label: 'Active Development' },
+            { key: 'OnHold', label: 'On Hold' },
           ] as const).map((opt) => (
             <button
               key={opt.key}
               onClick={() => setStatus(opt.key)}
-              className={`px-3 py-2 rounded border text-left ${status===opt.key? 'bg-green-600 border-green-500 text-white':'bg-gray-700 border-gray-600 text-gray-200'}`}
+              className={`px-3 py-2 rounded-lg border text-left text-sm ${status===opt.key? 'bg-[#00D4AA] border-[#00D4AA] text-white':'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'}`}
             >
               {opt.label}
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Size estimator */}
+      <div className="mt-6">
+        <div className="flex items-center justify-between mb-2 text-sm text-gray-600">
+          <span>Estimated on-chain size</span>
+          <span>
+            {estimateSize} / {MAX_ACCOUNT_BYTES} bytes
+          </span>
+        </div>
+        <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div
+            className={`h-2 rounded-full ${estimateSize > RECOMMENDED_MAX ? 'bg-red-400' : 'bg-teal-500'}`}
+            style={{ width: Math.min(100, Math.round((estimateSize / MAX_ACCOUNT_BYTES) * 100)) + '%' }}
+          />
+        </div>
+        {estimateSize > RECOMMENDED_MAX && (
+          <div className="mt-2 flex items-center justify-between gap-3">
+            <p className="text-xs text-red-600">
+              Tip: Reduce description length, trim tag counts/lengths, or remove some role labels to fit under ~{RECOMMENDED_MAX} bytes.
+            </p>
+            <button type="button" onClick={autoCompact} className="text-xs px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50 text-gray-700">
+              Auto‑compact to fit
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="flex gap-3">
@@ -497,16 +676,16 @@ export default function ProjectCreate() {
             setCollabLevel('Intermediate');
             setStatus('InProgress');
           }}
-          className="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold"
+          className="flex-1 border border-gray-300 text-gray-700 hover:bg-gray-50 px-6 py-3 rounded-lg font-semibold"
         >
           Reset
         </button>
         <button
           onClick={handleSubmit}
           disabled={!canSubmit || loading}
-          className="flex-1 bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-lg font-semibold disabled:opacity-50"
+          className="flex-1 bg-[#00D4AA] hover:bg-[#00B894] text-white px-6 py-3 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? '⏳ Creating...' : '🚀 Create Project'}
+          {loading ? 'Creating…' : 'Create Project'}
         </button>
       </div>
     </div>

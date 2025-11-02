@@ -10,9 +10,13 @@ const WalletMultiButtonDynamic = dynamic(
 );
 import { usePathname } from 'next/navigation';
 import dynamic from 'next/dynamic';
+import { Sora } from 'next/font/google';
+import Logo from './Logo';
 const ToastContainer = dynamic(() => import('./Toast').then(m => m.ToastContainer), { ssr: false });
 const NotificationProvider = dynamic(() => import('./NotificationProvider').then(m => m.NotificationProvider), { ssr: false });
 import { useAnchorProgram, getUserPDA } from '../hooks/useAnchorProgram';
+
+const premium = Sora({ subsets: ['latin'], weight: ['500','600'] });
 
 export default function Navbar() {
   const { publicKey } = useWallet();
@@ -105,65 +109,27 @@ export default function Navbar() {
     <ToastContainer />
     <nav className="sticky top-0 z-50 bg-white border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center mr-8">
-            <div className="text-xl font-bold text-gray-900">
-              DevCol
+        <div className="relative flex items-center h-16">
+          {/* Left Logo */}
+          <div className="hidden md:flex items-center">
+            <Logo withWordmark href="/" />
+          </div>
+
+          {/* Center Tagline (absolute centered) */}
+          <div className="hidden md:flex items-center justify-center absolute left-1/2 -translate-x-1/2">
+            <div className={`select-none ${premium.className}`}>
+              <div className="px-8 md:px-10 py-2.5 rounded-full border border-gray-300 bg-white/80 backdrop-blur text-lg md:text-xl font-semibold tracking-tight">
+                <span>Co‑build, catch bugs, crush launches.</span>
+              </div>
             </div>
-          </Link>
-
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8 flex-1">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`text-sm font-medium transition-colors ${
-                  isActive(link.href)
-                    ? 'text-gray-900'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
-
-            {publicKey && (
-              <Link
-                href="/requests"
-                className={`relative text-sm font-medium transition-colors ${
-                  isActive('/requests')
-                    ? 'text-gray-900'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                Requests
-                {pendingCount > 0 && (
-                  <span className="absolute -top-2 -right-3 bg-red-600 text-white text-xs px-1.5 py-0.5 rounded-full">
-                    {pendingCount}
-                  </span>
-                )}
-              </Link>
-            )}
           </div>
 
           {/* Right side */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 ml-auto">
             {/* Wallet */}
             <div className="wallet-adapter-button-trigger">
               <WalletMultiButtonDynamic />
             </div>
-
-            {/* CTA */}
-            {publicKey && profileChecked && hasProfile && (
-              <Link
-                href="/projects/new"
-                className="hidden md:block px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors"
-              >
-                Submit Project
-              </Link>
-            )}
 
             {/* Mobile menu button */}
             <button
@@ -185,64 +151,14 @@ export default function Navbar() {
 
           {/* Mobile Navigation */}
           {mobileMenuOpen && (
-            <div className="md:hidden py-4 space-y-2 border-t border-gray-200">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className={`block px-4 py-3 rounded-lg font-medium transition-all ${
-                  isActive(link.href)
-                    ? 'bg-[#00D4AA] text-white'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
-
-            {publicKey && (
-              <Link
-                href="/requests"
-                onClick={() => setMobileMenuOpen(false)}
-                className={`block px-4 py-3 rounded-lg font-medium transition-all ${
-                  isActive('/requests')
-                    ? 'bg-[#00D4AA] text-white'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                }`}
-              >
-                Requests
-                {pendingCount > 0 && (
-                  <span className="ml-2 inline-block bg-red-600 text-white text-xs px-1.5 py-0.5 rounded-full">
-                    {pendingCount}
-                  </span>
-                )}
-              </Link>
-            )}
-            
-            {publicKey && profileChecked && (
-              hasProfile ? (
-                <Link
-                  href="/projects/new"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block px-4 py-3 rounded-lg font-semibold bg-[#00D4AA] text-white"
-                >
-                  <span className="mr-2">🚀</span>
-                  Create Project
-                </Link>
-              ) : (
-                <Link
-                  href="/profile"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block px-4 py-3 rounded-lg font-medium border border-gray-300 text-gray-600"
-                >
-                  <span className="mr-2">👤</span>
-                  Create Profile First
-                </Link>
-              )
-            )}
-          </div>
-        )}
+            <div className="md:hidden py-4 border-t border-gray-200">
+              <div className="px-4">
+                <div className={`px-5 py-2 rounded-full border border-gray-300 bg-white/80 backdrop-blur text-sm font-semibold tracking-tight text-center ${premium.className}`}>
+                  <span>Co‑build, catch bugs, crush launches.</span>
+                </div>
+              </div>
+            </div>
+          )}
       </div>
     </nav>
     </>

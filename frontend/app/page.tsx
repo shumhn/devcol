@@ -2,6 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import { Space_Grotesk, Sora } from 'next/font/google';
+
+const display = Space_Grotesk({ subsets: ['latin'], weight: ['700'] });
+const premium = Sora({ subsets: ['latin'], weight: ['400','600'] });
 import { useAnchorProgram, getUserPDA } from './hooks/useAnchorProgram';
 import { PublicKey } from '@solana/web3.js';
 import ShowcaseCard from './components/ShowcaseCard';
@@ -99,18 +103,19 @@ export default function Home() {
         {/* Hero */}
         <section className="mb-20 pt-16">
           <div className="max-w-5xl mx-auto text-center">
-            <div className="mb-8">
-              <span className="text-gray-500 text-sm font-semibold uppercase tracking-wider">Developer Collaboration Platform</span>
+            <div className="mb-5">
+              <span className="text-gray-500 text-sm font-semibold uppercase tracking-wider">Solana Developer Collaboration Platform</span>
             </div>
-            <h1 className="text-6xl md:text-7xl font-black mb-4 leading-none uppercase tracking-tight">
-              <span className="text-gray-900">BUILD THE NEXT</span>
-              <br />
-              <span className="text-gray-900">KILLER PROJECT</span>
+            <h1 className={`${display.className} text-6xl md:text-7xl font-black mb-4 leading-[0.95] uppercase tracking-tight`} aria-label="Build the next killer project">
+              <span className="text-gray-900 block animate-reveal-up" style={{ ['--delay' as any]: '0ms' }}>BUILD THE NEXT</span>
+              <span className="block animate-reveal-up" style={{ ['--delay' as any]: '200ms' }}>
+                <span className="headline-shimmer">KILLER PROJECT</span>
+              </span>
             </h1>
-            <p className="text-xl md:text-2xl font-semibold text-gray-700 mb-10">
-              Find your next pair programmer.
+            <p className={`${premium.className} text-xl md:text-2xl font-semibold text-gray-700 mb-10 animate-reveal-up`} style={{ ['--delay' as any]: '400ms' }}>
+              Find your co‑builder. Ship on Solana.
             </p>
-            <p className="text-gray-600 text-lg mb-10 max-w-2xl mx-auto leading-relaxed">
+            <p className={`${premium.className} text-gray-600 text-lg mb-12 max-w-2xl mx-auto leading-relaxed`}>
               Connect with talented Web3 developers, form teams, and collaborate on projects built on Solana. DevCol helps you find the right people to bring your ideas to life.
             </p>
             <div className="flex justify-center gap-4">
