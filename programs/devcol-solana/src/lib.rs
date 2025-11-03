@@ -363,8 +363,10 @@ pub struct DeleteCollabRequest<'info> {
         request.to = ctx.accounts.project.creator;
         request.project = ctx.accounts.project.key();
         request.message = message;
+        request.owner_message = String::new(); // Initialize as empty
         request.status = RequestStatus::Pending;
         request.timestamp = Clock::get()?.unix_timestamp;
+        request.reply_timestamp = 0; // Initialize as 0 (no reply yet)
         request.bump = ctx.bumps.collab_request;
         request.desired_role = desired_role;
 
@@ -390,7 +392,11 @@ pub struct DeleteCollabRequest<'info> {
     }
 
     /// Accept a collaboration request
-    pub fn accept_collab_request(ctx: Context<UpdateCollabRequest>) -> Result<()> {
+    pub fn accept_collab_request(
+        ctx: Context<UpdateCollabRequest>,
+        owner_message: String,
+    ) -> Result<()> {
+        require!(owner_message.len() <= 500, ErrorCode::MessageTooLong);
         let request = &mut ctx.accounts.collab_request;
         require!(
             request.status == RequestStatus::Pending || request.status == RequestStatus::UnderReview,
@@ -407,12 +413,18 @@ pub struct DeleteCollabRequest<'info> {
         }
 
         request.status = RequestStatus::Accepted;
+        request.owner_message = owner_message;
+        request.reply_timestamp = Clock::get()?.unix_timestamp;
         msg!("Collaboration request accepted: {:?}", request.key());
         Ok(())
     }
 
     /// Reject a collaboration request
-    pub fn reject_collab_request(ctx: Context<UpdateCollabRequest>) -> Result<()> {
+    pub fn reject_collab_request(
+        ctx: Context<UpdateCollabRequest>,
+        owner_message: String,
+    ) -> Result<()> {
+        require!(owner_message.len() <= 500, ErrorCode::MessageTooLong);
         let request = &mut ctx.accounts.collab_request;
         require!(
             request.status == RequestStatus::Pending || request.status == RequestStatus::UnderReview,
@@ -420,6 +432,8 @@ pub struct DeleteCollabRequest<'info> {
         );
 
         request.status = RequestStatus::Rejected;
+        request.owner_message = owner_message;
+        request.reply_timestamp = Clock::get()?.unix_timestamp;
         msg!("Collaboration request rejected: {:?}", request.key());
         Ok(())
     }
@@ -678,13 +692,16 @@ pub struct CollaborationRequest {
     pub to: Pubkey,               // 32 bytes
     pub project: Pubkey,          // 32 bytes
     #[max_len(500)]
-    pub message: String,          // 4 + 500 = 504 bytes
+    pub message: String,          // 4 + 500 = 504 bytes (sender's message)
+    #[max_len(500)]
+    pub owner_message: String,    // 4 + 500 = 504 bytes (owner's reply message)
     pub status: RequestStatus,    // 1 byte
-    pub timestamp: i64,           // 8 bytes
+    pub timestamp: i64,           // 8 bytes (request sent timestamp)
+    pub reply_timestamp: i64,     // 8 bytes (owner reply timestamp)
     pub bump: u8,                 // 1 byte
     pub desired_role: Option<Role>, // 2 bytes (1 discriminant + 1 enum)
 }
-// Total: ~612 bytes (well under 4KB)
+// Total: ~1132 bytes (well under 4KB)
 
 // ==================== ENUMS ====================
 

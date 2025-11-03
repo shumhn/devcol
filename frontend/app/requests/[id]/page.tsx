@@ -9,18 +9,21 @@ import { useAnchorProgram } from '@/app/hooks/useAnchorProgram';
 import { rpcWithRetry } from '@/app/utils/rpcRetry';
 import { showToast } from '@/app/components/Toast';
 import { MessageModal } from '@/app/components/MessageModal';
+import { Sora } from 'next/font/google';
+
+const premium = Sora({ subsets: ['latin'], weight: ['400', '500', '600'] });
 
 function StatusBadge({ status }: { status: string }) {
-  const color =
+  const styles =
     status === 'pending'
-      ? 'bg-yellow-500'
+      ? 'bg-yellow-100 text-yellow-800 border-yellow-300'
       : status === 'underReview'
-      ? 'bg-blue-500'
+      ? 'bg-blue-100 text-blue-800 border-blue-300'
       : status === 'accepted'
-      ? 'bg-green-600'
-      : 'bg-red-600';
+      ? 'bg-green-100 text-green-800 border-green-300'
+      : 'bg-red-100 text-red-800 border-red-300';
   const label = status === 'underReview' ? 'Under Review' : status[0].toUpperCase() + status.slice(1);
-  return <span className={`text-xs px-2 py-1 rounded ${color} text-white`}>{label}</span>;
+  return <span className={`text-xs px-2.5 py-0.5 rounded-full border font-medium ${styles}`}>{label}</span>;
 }
 
 function parseProofs(message: string) {
@@ -135,7 +138,7 @@ export default function RequestDetailPage() {
     try {
       await rpcWithRetry(() =>
         (program as any).methods
-          .acceptCollabRequest()
+          .acceptCollabRequest(ownerMessage.trim() || 'Request accepted')
           .accounts({ collabRequest: req.publicKey, to: publicKey, project: req.account.project })
           .rpc()
       );
@@ -143,16 +146,6 @@ export default function RequestDetailPage() {
       const account = await (program as any).account.collaborationRequest.fetch(req.publicKey, 'confirmed');
       setReq({ publicKey: req.publicKey, account });
       showToast('success', '✅ Request accepted');
-      // Store owner message
-      if (ownerMessage.trim()) {
-        try {
-          localStorage.setItem(`request_message_${req.publicKey.toString()}`, JSON.stringify({
-            type: 'accept',
-            message: ownerMessage.trim(),
-            timestamp: Date.now()
-          }));
-        } catch {}
-      }
       setOwnerMessage('');
     } catch (e) {
       console.error('Accept collab error:', e);
@@ -184,12 +177,13 @@ export default function RequestDetailPage() {
     try {
       await rpcWithRetry(() =>
         (program as any).methods
-          .rejectCollabRequest()
+          .rejectCollabRequest(ownerMessage.trim() || 'Request rejected')
           .accounts({ collabRequest: req.publicKey, to: publicKey, project: req.account.project })
           .rpc()
       );
       const account = await (program as any).account.collaborationRequest.fetch(req.publicKey, 'confirmed');
       setReq({ publicKey: req.publicKey, account });
+      setOwnerMessage('');
     } catch (e) {
       console.error('Reject collab error:', e);
       alert('❌ Failed to reject: ' + (e as any)?.message || 'Unknown error');
@@ -237,20 +231,22 @@ export default function RequestDetailPage() {
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-10 text-center">
-        <div className="text-4xl mb-3">⏳</div>
-        <div className="text-gray-400">Loading request…</div>
+      <div className={`min-h-screen bg-[#F8F9FA] ${premium.className}`}>
+        <div className="max-w-4xl mx-auto px-6 py-10 text-center">
+          <div className="text-sm text-gray-600">Loading request…</div>
+        </div>
       </div>
     );
   }
 
   if (!req) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-10 text-center">
-        <div className="text-4xl mb-3">❓</div>
-        <div className="text-gray-400">Request not found.</div>
-        <div className="mt-6">
-          <Link href="/requests" className="text-blue-400 hover:underline">← Back to Inbox</Link>
+      <div className={`min-h-screen bg-[#F8F9FA] ${premium.className}`}>
+        <div className="max-w-4xl mx-auto px-6 py-10 text-center">
+          <div className="text-sm text-gray-600">Request not found.</div>
+          <div className="mt-6">
+            <Link href="/requests" className="text-[#00D4AA] hover:underline text-sm font-medium">← Back to Inbox</Link>
+          </div>
         </div>
       </div>
     );
@@ -266,139 +262,170 @@ export default function RequestDetailPage() {
   const roleLabel = desiredRole ? desiredRole.replace(/^[a-z]/, (c: string) => c.toUpperCase()) : 'Not specified';
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="mb-4">
-        <Link href="/requests" className="text-blue-400 hover:underline">← Back to Inbox</Link>
-      </div>
+    <div className={`min-h-screen bg-[#F8F9FA] ${premium.className}`}>
+      <div className="max-w-4xl mx-auto px-6 py-8">
+        <div className="mb-4">
+          <Link href="/requests" className="text-[#00D4AA] hover:underline text-sm font-medium">← Back to Inbox</Link>
+        </div>
 
-      <div className="bg-gray-800 rounded-lg border border-gray-700 p-6">
-        <div className="flex items-start justify-between">
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold text-white">Collaboration Request</h1>
-              <StatusBadge status={status} />
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-semibold text-gray-900">Collaboration Request</h1>
+                <StatusBadge status={status} />
+              </div>
+              <div className="text-xs text-gray-500 mt-1">
+                {new Date(req.account.timestamp * 1000).toLocaleString()}
+              </div>
             </div>
-            <div className="text-sm text-gray-400 mt-1">
-              {new Date(req.account.timestamp * 1000).toLocaleString()}
-            </div>
-          </div>
-          <div>
-            <Link
-              href={`/projects/${req.account.project.toString()}`}
-              className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-lg"
-            >
-              Open Project
-            </Link>
-          </div>
-        </div>
-
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h2 className="font-semibold text-white mb-2">From</h2>
-            <div className="text-gray-300 break-all"><Username pk={req.account.from.toString()} /></div>
-          </div>
-          <div>
-            <h2 className="font-semibold text-white mb-2">To</h2>
-            <div className="text-gray-300 break-all"><Username pk={req.account.to.toString()} /></div>
-          </div>
-        </div>
-
-        <div className="mt-6">
-          <h2 className="font-semibold text-white mb-2">Requested Role</h2>
-          <div className="bg-purple-900 text-purple-200 px-3 py-2 rounded inline-block">
-            🎭 {roleLabel}
-          </div>
-        </div>
-
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h2 className="font-semibold text-white mb-2">Proof of Work</h2>
-            <div className="space-y-2">
-              {gh && (
-                <div className="flex items-center gap-2">
-                  <span>🔗</span>
-                  <a href={gh} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
-                    GitHub
-                  </a>
-                </div>
-              )}
-              {tw && (
-                <div className="flex items-center gap-2">
-                  <span>🐦</span>
-                  <a href={`https://twitter.com/${tw.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
-                    @{tw.replace(/^@/, '')}
-                  </a>
-                </div>
-              )}
-              {!gh && !tw && <div className="text-gray-500">No proof provided</div>}
-            </div>
-          </div>
-          <div>
-            <h2 className="font-semibold text-white mb-2">Message</h2>
-            <div className="text-gray-300 whitespace-pre-wrap">{body || req.account.message}</div>
-          </div>
-        </div>
-
-        {youAreSender && displayMessage && (status === 'accepted' || status === 'rejected') && (
-          <div className={`mt-6 p-4 rounded-lg border ${
-            displayMessage.type === 'accept' ? 'bg-green-900 border-green-600' : 'bg-red-900 border-red-600'
-          }`}>
-            <h3 className="font-semibold text-white mb-2">
-              {displayMessage.type === 'accept' ? '✅ Message from project owner' : '❌ Rejection reason'}
-            </h3>
-            <p className="text-gray-200 whitespace-pre-wrap">{displayMessage.message}</p>
-          </div>
-        )}
-
-        <div className="mt-8 flex flex-col sm:flex-row gap-3">
-          {youAreRecipient && isPending && (
-            <button
-              onClick={markUnderReview}
-              disabled={acting === 'review'}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold disabled:opacity-50"
-            >
-              {acting === 'review' ? '⏳ Marking...' : '🔍 Mark Under Review'}
-            </button>
-          )}
-          {youAreRecipient && (isPending || isUnderReview) && (
-            <>
-              <button
-                disabled={acting === 'accept'}
-                onClick={() => setShowMessageModal('accept')}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold disabled:opacity-50"
+            <div>
+              <Link
+                href={`/projects/${req.account.project.toString()}`}
+                className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-medium"
               >
-                {acting === 'accept' ? '⏳ Accepting...' : '✅ Accept'}
-              </button>
-              <button
-                onClick={() => setShowMessageModal('reject')}
-                disabled={acting === 'reject'}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold disabled:opacity-50"
-              >
-                {acting === 'reject' ? '⏳ Rejecting...' : '❌ Reject'}
-              </button>
-            </>
-          )}
-          {youAreSender && (
-            <div className="text-gray-400 text-center py-3">
-              {isPending && 'Waiting for review...'}
-              {isUnderReview && 'Under review by project owner'}
-              {status === 'accepted' && '✅ Your request was accepted!'}
-              {status === 'rejected' && '❌ Your request was rejected'}
+                Open Project
+              </Link>
+            </div>
+          </div>
+
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h2 className="text-sm font-medium text-gray-700 mb-2">From</h2>
+              <div className="text-sm text-gray-900 break-all"><Username pk={req.account.from.toString()} /></div>
+            </div>
+            <div>
+              <h2 className="text-sm font-medium text-gray-700 mb-2">To</h2>
+              <div className="text-sm text-gray-900 break-all"><Username pk={req.account.to.toString()} /></div>
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <h2 className="text-sm font-medium text-gray-700 mb-2">Requested Role</h2>
+            <div className="bg-purple-50 text-purple-700 border border-purple-200 px-3 py-1.5 rounded-full inline-block text-sm font-medium">
+              {roleLabel}
+            </div>
+          </div>
+
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h2 className="text-sm font-medium text-gray-700 mb-2">Proof of Work</h2>
+              <div className="space-y-2 text-sm">
+                {gh && (
+                  <div>
+                    <a href={gh} target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-gray-900 underline">
+                      GitHub
+                    </a>
+                  </div>
+                )}
+                {tw && (
+                  <div>
+                    <a href={`https://twitter.com/${tw.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-gray-900 underline">
+                      @{tw.replace(/^@/, '')}
+                    </a>
+                  </div>
+                )}
+                {!gh && !tw && <div className="text-gray-500 text-sm">No proof provided</div>}
+              </div>
+            </div>
+            <div>
+              <h2 className="text-sm font-medium text-gray-700 mb-2">Message</h2>
+              <div className="text-sm text-gray-700 whitespace-pre-wrap">{body || req.account.message}</div>
+            </div>
+          </div>
+
+          {youAreSender && isUnderReview && (
+            <div className="mt-6 p-4 rounded-lg border bg-blue-50 border-blue-200">
+              <h3 className="text-sm font-medium mb-2 text-blue-900">
+                Your request is being reviewed
+              </h3>
+              <p className="text-sm text-blue-800">
+                The project owner has marked your collaboration request as under review. They will get back to you soon with their decision.
+              </p>
             </div>
           )}
-        </div>
-      </div>
 
-      <MessageModal
-        isOpen={!!showMessageModal}
-        type={showMessageModal || 'accept'}
-        onClose={() => setShowMessageModal(null)}
-        onSubmit={(msg) => {
-          setOwnerMessage(msg);
-          if (showMessageModal === 'accept') accept();
-          else if (showMessageModal === 'reject') reject();
-        }}
-      />
+          {/* Owner's reply message */}
+          {req.account.ownerMessage && req.account.ownerMessage.trim() && (
+            <div className={`mt-6 p-4 rounded-lg border ${
+              status === 'accepted' ? 'bg-green-50 border-green-200' : 
+              status === 'rejected' ? 'bg-red-50 border-red-200' : 
+              'bg-gray-50 border-gray-200'
+            }`}>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className={`text-sm font-medium ${
+                  status === 'accepted' ? 'text-green-900' : 
+                  status === 'rejected' ? 'text-red-900' : 
+                  'text-gray-900'
+                }`}>
+                  {status === 'accepted' ? 'Accepted! Message from project owner:' : 
+                   status === 'rejected' ? 'Rejected. Reason from project owner:' : 
+                   'Message from project owner:'}
+                </h3>
+                {req.account.replyTimestamp && req.account.replyTimestamp > 0 && (
+                  <span className="text-xs text-gray-500">
+                    {new Date(req.account.replyTimestamp * 1000).toLocaleString()}
+                  </span>
+                )}
+              </div>
+              <p className={`text-sm whitespace-pre-wrap ${
+                status === 'accepted' ? 'text-green-800' : 
+                status === 'rejected' ? 'text-red-800' : 
+                'text-gray-700'
+              }`}>{req.account.ownerMessage}</p>
+            </div>
+          )}
+
+          <div className="mt-8 flex flex-col sm:flex-row gap-3">
+            {youAreRecipient && isPending && (
+              <button
+                onClick={markUnderReview}
+                disabled={acting === 'review'}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium disabled:opacity-50"
+              >
+                {acting === 'review' ? 'Marking...' : 'Mark Under Review'}
+              </button>
+            )}
+            {youAreRecipient && (isPending || isUnderReview) && (
+              <>
+                <button
+                  disabled={acting === 'accept'}
+                  onClick={() => setShowMessageModal('accept')}
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium disabled:opacity-50"
+                >
+                  {acting === 'accept' ? 'Accepting...' : 'Accept'}
+                </button>
+                <button
+                  onClick={() => setShowMessageModal('reject')}
+                  disabled={acting === 'reject'}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium disabled:opacity-50"
+                >
+                  {acting === 'reject' ? 'Rejecting...' : 'Reject'}
+                </button>
+              </>
+            )}
+            {youAreSender && (
+              <div className="text-gray-600 text-center py-3 text-sm">
+                {isPending && 'Waiting for review...'}
+                {isUnderReview && 'Under review by project owner'}
+                {status === 'accepted' && 'Your request was accepted!'}
+                {status === 'rejected' && 'Your request was rejected'}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <MessageModal
+          isOpen={!!showMessageModal}
+          type={showMessageModal || 'accept'}
+          onClose={() => setShowMessageModal(null)}
+          onSubmit={(msg) => {
+            setOwnerMessage(msg);
+            if (showMessageModal === 'accept') accept();
+            else if (showMessageModal === 'reject') reject();
+          }}
+        />
+      </div>
     </div>
   );
 }

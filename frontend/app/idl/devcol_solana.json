@@ -102,7 +102,12 @@
           }
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "owner_message",
+          "type": "string"
+        }
+      ]
     },
     {
       "name": "create_project",
@@ -683,7 +688,12 @@
           }
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "owner_message",
+          "type": "string"
+        }
+      ]
     },
     {
       "name": "send_collab_request",
@@ -1323,6 +1333,10 @@
             "type": "string"
           },
           {
+            "name": "owner_message",
+            "type": "string"
+          },
+          {
             "name": "status",
             "type": {
               "defined": {
@@ -1332,6 +1346,10 @@
           },
           {
             "name": "timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "reply_timestamp",
             "type": "i64"
           },
           {

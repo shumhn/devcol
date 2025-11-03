@@ -1,9 +1,9 @@
 'use client';
 
-import { FC, ReactNode, useMemo } from 'react';
+import { FC, ReactNode, useMemo, useCallback } from 'react';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
-import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
+import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { clusterApiUrl, Commitment } from '@solana/web3.js';
 
@@ -18,7 +18,9 @@ export const WalletContextProvider: FC<WalletContextProviderProps> = ({ children
   // Prefer env RPC, fallback to Helius devnet, finally to clusterApiUrl
   const network = WalletAdapterNetwork.Devnet;
   const endpoint = useMemo(() => {
+    // Prefer explicit devnet RPC env var if provided
     return (
+      process.env.NEXT_PUBLIC_SOLANA_RPC_URL_DEVNET ||
       process.env.NEXT_PUBLIC_SOLANA_RPC_URL ||
       'https://devnet.helius-rpc.com/?api-key=1a571cec-6f5e-4cc5-be17-a50dc8c5954a' ||
       clusterApiUrl(network)
@@ -30,13 +32,20 @@ export const WalletContextProvider: FC<WalletContextProviderProps> = ({ children
   const wallets = useMemo(
     () => [
       new PhantomWalletAdapter(),
+      new SolflareWalletAdapter(),
     ],
     []
   );
 
+  // Handle wallet errors
+  const onError = useCallback((error: any) => {
+    console.error('Wallet error:', error);
+  }, []);
+
   return (
     <ConnectionProvider endpoint={endpoint} config={{ commitment }}>
-      <WalletProvider wallets={wallets} autoConnect>
+      {/* Disable autoConnect so users can properly disconnect/change wallet from the modal */}
+      <WalletProvider wallets={wallets} autoConnect={false} onError={onError}>
         <WalletModalProvider>
           {children}
         </WalletModalProvider>
@@ -44,3 +53,4 @@ export const WalletContextProvider: FC<WalletContextProviderProps> = ({ children
     </ConnectionProvider>
   );
 };
+

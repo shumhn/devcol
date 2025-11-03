@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { SystemProgram } from '@solana/web3.js';
+import { SystemProgram, PublicKey } from '@solana/web3.js';
 import { useAnchorProgram, getUserPDA } from '../hooks/useAnchorProgram';
 import { getProjectPDA } from '../utils/programHelpers';
 import { uploadImageToIPFS } from '../utils/ipfs';
@@ -65,7 +65,12 @@ const NEED_PRESETS: Tag[] = [
   { key: 'Content', label: 'Content', icon: '✍️' },
 ];
 
-export default function ProjectCreate() {
+interface ProjectCreateProps {
+  editMode?: boolean;
+  existingProject?: any;
+}
+
+export default function ProjectCreate({ editMode = false, existingProject }: ProjectCreateProps = {}) {
   const router = useRouter();
   const { publicKey } = useWallet();
   const { program } = useAnchorProgram();
@@ -94,6 +99,73 @@ export default function ProjectCreate() {
 
   // Validation errors
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Pre-fill form when in edit mode
+  useEffect(() => {
+    if (editMode && existingProject?.account) {
+      const acc = existingProject.account;
+      setName(acc.name || '');
+      setDescription(acc.description || '');
+      setGithubUrl(acc.githubLink || acc.github || '');
+      setCollabIntent(acc.collaborationIntent || acc.collabIntent || '');
+      
+      // Tech stack
+      const tech = acc.techStack || acc.tech_stack || [];
+      setTechStack(Array.isArray(tech) ? tech.map((t: any) => typeof t === 'string' ? t : t.value || '') : []);
+      
+      // Needs
+      const needsArr = acc.contributionNeeds || acc.needs || [];
+      setNeeds(Array.isArray(needsArr) ? needsArr.map((n: any) => typeof n === 'string' ? n : n.value || '') : []);
+      
+      // Collab level
+      const levelKey = Object.keys(acc.collaborationLevel || acc.collabLevel || {})[0];
+      if (levelKey) {
+        const mapped = levelKey === 'beginner' ? 'Beginner' :
+                      levelKey === 'intermediate' ? 'Intermediate' :
+                      levelKey === 'advanced' ? 'Advanced' :
+                      levelKey === 'allLevels' ? 'AllLevels' : 'Intermediate';
+        setCollabLevel(mapped as keyof typeof CollaborationLevel);
+      }
+      
+      // Status
+      const statusKey = Object.keys(acc.status || acc.projectStatus || {})[0];
+      if (statusKey) {
+        const mapped = statusKey === 'justStarted' ? 'JustStarted' :
+                      statusKey === 'inProgress' ? 'InProgress' :
+                      statusKey === 'nearlyComplete' ? 'NearlyComplete' :
+                      statusKey === 'completed' ? 'Completed' :
+                      statusKey === 'activeDev' ? 'ActiveDev' :
+                      statusKey === 'onHold' ? 'OnHold' : 'InProgress';
+        setStatus(mapped as keyof typeof ProjectStatus);
+      }
+      
+      // Role requirements
+      if (acc.roleRequirements && Array.isArray(acc.roleRequirements)) {
+        const roles = acc.roleRequirements.map((r: any) => {
+          const roleKey = Object.keys(r.role || {})[0] || 'others';
+          const mapped = roleKey === 'frontend' ? 'Frontend' :
+                        roleKey === 'backend' ? 'Backend' :
+                        roleKey === 'smartContract' ? 'SmartContract' :
+                        roleKey === 'design' ? 'Design' :
+                        roleKey === 'marketing' ? 'Marketing' :
+                        'Others';
+          return {
+            role: mapped as keyof typeof Role,
+            needed: r.slots || r.needed || 1,
+            label: r.label || undefined,
+          };
+        });
+        setRoleRequirements(roles);
+      }
+      
+      // Logo preview
+      const logoHash = acc.logoIpfsHash || acc.logoHash || acc.logo;
+      if (logoHash && typeof window !== 'undefined') {
+        const stored = localStorage.getItem(`ipfs_image_${logoHash}`);
+        if (stored) setLogoPreview(stored);
+      }
+    }
+  }, [editMode, existingProject]);
 
   // Estimate serialized size for on-chain Project account (approximate)
   const estimateSize = useMemo(() => {
@@ -271,39 +343,70 @@ export default function ProjectCreate() {
         logoHash = await uploadImageToIPFS(logoFile);
       }
 
-      // Derive PDA (depends on CreateProject context using name)
-      const [projectPDA] = await getProjectPDA(publicKey, name);
+      let projectPDA: PublicKey;
+      
+      if (editMode && existingProject) {
+        // Edit mode: use existing project PDA
+        projectPDA = existingProject.publicKey;
+        
+        // Call update_project instruction
+        // Note: update_project doesn't support logo or role updates, only basic fields
+        await (program as any).methods
+          .updateProject(
+            safeName,                           // name: Option<String>
+            safeDesc,                           // description: Option<String>
+            safeGithub,                         // github_link: Option<String>
+            safeTech,                           // tech_stack: Option<Vec<String>>
+            safeNeeds,                          // contribution_needs: Option<Vec<String>>
+            safeIntent,                         // collab_intent: Option<String>
+            CollaborationLevel[collabLevel],    // collaboration_level: Option<CollaborationLevel>
+            ProjectStatus[status],              // project_status: Option<ProjectStatus>
+            true                                // is_active: Option<bool>
+          )
+          .accounts({
+            project: projectPDA,
+            creator: publicKey,
+          })
+          .rpc();
+        
+        alert('✅ Project updated successfully!');
+        router.push(`/projects/${projectPDA.toBase58()}`);
+      } else {
+        // Create mode: derive new PDA
+        const [newProjectPDA] = await getProjectPDA(publicKey, name);
+        projectPDA = newProjectPDA;
 
-      await (program as any).methods
-        .createProject(
-          safeName,
-          safeDesc,
-          safeGithub,
-          logoHash,
-          safeTech,
-          safeNeeds,
-          safeIntent,
-          CollaborationLevel[collabLevel],
-          ProjectStatus[status],
-          safeRoles.map(r => ({ role: { [r.role.toLowerCase()]: {} }, needed: r.needed, accepted: 0, label: r.role === 'Others' && r.label ? r.label : null }))
-        )
-        .accounts({
-          project: projectPDA,
-          user: userPda,
-          creator: publicKey,
-          systemProgram: SystemProgram.programId,
-        })
-        .rpc();
-      // Navigate to the newly created project detail page
-      try {
-        // projectPDA is already derived above
-        // Small delay to allow RPC indexing
-        setTimeout(() => {
-          router.replace(`/projects/${projectPDA.toBase58()}`);
-        }, 300);
-      } catch {
-        // Fallback: go to projects list
-        router.push('/projects');
+        await (program as any).methods
+          .createProject(
+            safeName,
+            safeDesc,
+            safeGithub,
+            logoHash,
+            safeTech,
+            safeNeeds,
+            safeIntent,
+            CollaborationLevel[collabLevel],
+            ProjectStatus[status],
+            safeRoles.map(r => ({ role: { [r.role.toLowerCase()]: {} }, needed: r.needed, accepted: 0, label: r.role === 'Others' && r.label ? r.label : null }))
+          )
+          .accounts({
+            project: projectPDA,
+            user: userPda,
+            creator: publicKey,
+            systemProgram: SystemProgram.programId,
+          })
+          .rpc();
+        
+        // Navigate to the newly created project detail page
+        try {
+          // Small delay to allow RPC indexing
+          setTimeout(() => {
+            router.replace(`/projects/${projectPDA.toBase58()}`);
+          }, 300);
+        } catch {
+          // Fallback: go to projects list
+          router.push('/projects');
+        }
       }
     } catch (error: any) {
       console.error('Create project error:', error);
@@ -636,32 +739,6 @@ export default function ProjectCreate() {
             </button>
           ))}
         </div>
-      </div>
-
-      {/* Size estimator */}
-      <div className="mt-6">
-        <div className="flex items-center justify-between mb-2 text-sm text-gray-600">
-          <span>Estimated on-chain size</span>
-          <span>
-            {estimateSize} / {MAX_ACCOUNT_BYTES} bytes
-          </span>
-        </div>
-        <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-          <div
-            className={`h-2 rounded-full ${estimateSize > RECOMMENDED_MAX ? 'bg-red-400' : 'bg-teal-500'}`}
-            style={{ width: Math.min(100, Math.round((estimateSize / MAX_ACCOUNT_BYTES) * 100)) + '%' }}
-          />
-        </div>
-        {estimateSize > RECOMMENDED_MAX && (
-          <div className="mt-2 flex items-center justify-between gap-3">
-            <p className="text-xs text-red-600">
-              Tip: Reduce description length, trim tag counts/lengths, or remove some role labels to fit under ~{RECOMMENDED_MAX} bytes.
-            </p>
-            <button type="button" onClick={autoCompact} className="text-xs px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50 text-gray-700">
-              Auto‑compact to fit
-            </button>
-          </div>
-        )}
       </div>
 
       <div className="flex gap-3">
