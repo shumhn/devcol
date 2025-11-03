@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState, useRef } from 'react';
+import { useEffect, useMemo, useState, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { PublicKey } from '@solana/web3.js';
@@ -23,7 +23,7 @@ function StatusBadge({ status }: { status: string }) {
   return <span className={`text-xs px-2.5 py-0.5 rounded-full border font-medium ${styles}`}>{label}</span>;
 }
 
-export default function RequestsPage() {
+function RequestsPageContent() {
   const searchParams = useSearchParams();
   const highlightId = searchParams?.get('highlight');
   const { program } = useAnchorProgram();
@@ -448,5 +448,17 @@ export default function RequestsPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function RequestsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center">
+        <div className="text-gray-600">Loading...</div>
+      </div>
+    }>
+      <RequestsPageContent />
+    </Suspense>
   );
 }

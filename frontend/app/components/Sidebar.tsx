@@ -179,7 +179,8 @@ export default function Sidebar() {
                     >
                       <span>{item.label}</span>
                       {item.href === '/requests' && pendingCount > 0 && (
-                        <span className="min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full bg-[#00D4AA] text-gray-900 text-[11px] font-semibold">
+                        <span className="
+                         h-5 px-1.5 flex items-center justify-center rounded-full bg-[#00D4AA] text-gray-900 text-[11px] font-semibold">
                           {pendingCount > 99 ? '99+' : pendingCount}
                         </span>
                       )}
