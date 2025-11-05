@@ -38,8 +38,9 @@ export default function CollabRequests() {
       
       for (const senderWallet of uniqueSenders) {
         try {
+          const walletPubkey = new PublicKey(senderWallet as string);
           const [userPda] = await PublicKey.findProgramAddress(
-            [Buffer.from('user'), new PublicKey(senderWallet)],
+            [Buffer.from('user'), walletPubkey.toBuffer()],
             (program as any).programId
           );
           const profile = await (program as any).account.user.fetchNullable(userPda);
