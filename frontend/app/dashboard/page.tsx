@@ -98,7 +98,7 @@ export default function DashboardPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-(--text-primary) tracking-tight mb-2">Dashboard</h1>
-          <p className="text-(--text-secondary) text-lg">Welcome back, <span className="text-[#00D4AA] font-semibold">@{profile?.username || 'Developer'}</span>!</p>
+          <p className="text-(--text-secondary) text-lg">Welcome back, <span className="text-[#00D4AA] font-semibold">{profile?.display_name || profile?.username || 'Developer'}</span>!</p>
         </div>
 
         {/* Stats Grid - Premium Bright Colors */}

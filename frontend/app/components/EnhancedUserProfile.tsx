@@ -531,7 +531,7 @@ export default function EnhancedUserProfile() {
                 <h2 className={`${display.className} text-xl font-bold text-gray-900 mb-0.5`}>
                   {user.display_name || user.username}
                 </h2>
-                <p className="text-[#00D4AA] font-semibold text-sm">@{user.username}</p>
+                <p className="text-[#00D4AA] font-semibold text-sm">@{user.display_name || user.username}</p>
                 <p className="text-gray-600 text-sm mb-0">{user.role}</p>
               </div>
 

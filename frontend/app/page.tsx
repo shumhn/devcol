@@ -20,6 +20,7 @@ interface ProjectItem {
 interface FounderItem {
   wallet: string;
   username: string;
+  displayName?: string;
   bio?: string;
   projects: number;
 }
@@ -68,16 +69,18 @@ export default function Home() {
         }
         const list: FounderItem[] = creatorSet.map((w: string, i: number) => {
           let username = w.slice(0, 4) + '…' + w.slice(-4);
+          let displayName = '';
           let bio = '';
           try {
             if (infos && infos[i]) {
               const dec = (program as any).coder.accounts.decode('User', (infos[i] as any)!.data);
               username = dec.username || username;
+              displayName = dec.display_name || '';
               bio = dec.bio || '';
             }
           } catch {}
           const projectsCount = (all as any[]).filter((p: any) => p.account.creator.toString() === w).length;
-          return { wallet: w, username, bio, projects: projectsCount };
+          return { wallet: w, username, displayName, bio, projects: projectsCount };
         });
         // Sort founders by #projects desc
         list.sort((a, b) => b.projects - a.projects);
@@ -217,7 +220,7 @@ export default function Home() {
                   className="group rounded-xl bg-(--surface) border border-(--border) hover:border-[#00D4AA] hover:shadow-md transition-all p-5"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <div className="text-(--text-primary) font-bold">{f.username}</div>
+                    <div className="text-(--text-primary) font-bold">{f.displayName || f.username}</div>
                     <span className="text-xs text-(--text-muted) font-medium">{f.projects} projects</span>
                   </div>
                   {f.bio && (

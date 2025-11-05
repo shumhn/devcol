@@ -166,7 +166,7 @@ export default function FoundersPage() {
                   <div className="text-gray-900 font-bold text-lg group-hover:text-gray-700 transition-colors truncate">
                     {f.displayName || f.username}
                   </div>
-                  <div className="text-[#00D4AA] text-sm font-semibold">@{f.username}</div>
+                  <div className="text-[#00D4AA] text-sm font-semibold">@{f.displayName || f.username}</div>
                   {f.role && (
                     <div className="text-xs text-gray-600 mt-0.5">{f.role}</div>
                   )}
