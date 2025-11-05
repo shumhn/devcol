@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>c0Foundr Twitter Assets</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 40px;
+            background: #1a1a1a;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #fff;
+            margin-bottom: 10px;
+        }
+        
+        p {
+            color: #888;
+            margin-bottom: 40px;
+        }
+        
+        .asset-section {
+            margin-bottom: 60px;
+        }
+        
+        .asset-title {
+            color: #00D4AA;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        
+        .asset-info {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        
+        /* Profile Picture - 400x400 */
+        .profile-pic {
+            width: 400px;
+            height: 400px;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            border-radius: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            box-shadow: 0 20px 60px rgba(0, 212, 170, 0.3);
+        }
+        
+        .profile-pic .logo {
+            width: 200px;
+            height: 200px;
+            background: #f8fafc;
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .profile-pic .logo-icon {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .profile-pic .logo-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Twitter Banner - 1500x500 */
+        .twitter-banner {
+            width: 1500px;
+            height: 500px;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .twitter-banner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(0, 212, 170, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        
+        .banner-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+        
+        .banner-logo {
+            width: 100px;
+            height: 100px;
+            background: #f8fafc;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        
+        .banner-logo svg {
+            width: 60px;
+            height: 60px;
+        }
+        
+        .banner-title {
+            font-size: 72px;
+            font-weight: 900;
+            color: #fff;
+            margin-bottom: 15px;
+            letter-spacing: -2px;
+        }
+        
+        .banner-tagline {
+            font-size: 28px;
+            color: #00D4AA;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .banner-subtitle {
+            font-size: 18px;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+        
+        .download-btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #00D4AA;
+            color: #000;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 700;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+        
+        .download-btn:hover {
+            background: #00F0C3;
+            transform: translateY(-2px);
+        }
+        
+        .instructions {
+            background: #1e293b;
+            padding: 30px;
+            border-radius: 12px;
+            margin-top: 40px;
+            border-left: 4px solid #00D4AA;
+        }
+        
+        .instructions h3 {
+            color: #00D4AA;
+            margin-top: 0;
+        }
+        
+        .instructions ol {
+            color: #cbd5e1;
+            line-height: 1.8;
+        }
+        
+        .instructions code {
+            background: #0f172a;
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: #00D4AA;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>c0Foundr Twitter Assets</h1>
+        <p>High-quality assets for your Twitter profile</p>
+        
+        <!-- Profile Picture -->
+        <div class="asset-section">
+            <div class="asset-title">Profile Picture (400x400)</div>
+            <div class="asset-info">Perfect for Twitter profile photo</div>
+            <div class="profile-pic" id="profile-pic">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Left rounded rectangle (cyan) -->
+                            <rect x="15" y="30" width="35" height="40" rx="12" fill="#00D4AA"/>
+                            <!-- Right rounded rectangle (dark gray) -->
+                            <rect x="40" y="30" width="35" height="40" rx="12" fill="#3d4b5c"/>
+                            <!-- Small dot (cyan) -->
+                            <circle cx="82" cy="25" r="4" fill="#00D4AA"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            <button class="download-btn" onclick="downloadProfilePic()">Download Profile Picture</button>
+        </div>
+        
+        <!-- Twitter Banner -->
+        <div class="asset-section">
+            <div class="asset-title">Twitter Banner (1500x500)</div>
+            <div class="asset-info">Perfect for Twitter header image</div>
+            <div class="twitter-banner" id="twitter-banner">
+                <div class="banner-content">
+                    <div class="banner-logo">
+                        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Left rounded rectangle (cyan) -->
+                            <rect x="15" y="30" width="35" height="40" rx="12" fill="#00D4AA"/>
+                            <!-- Right rounded rectangle (dark gray) -->
+                            <rect x="40" y="30" width="35" height="40" rx="12" fill="#3d4b5c"/>
+                            <!-- Small dot (cyan) -->
+                            <circle cx="82" cy="25" r="4" fill="#00D4AA"/>
+                        </svg>
+                    </div>
+                    <div class="banner-title">c0Foundr</div>
+                    <div class="banner-tagline">Find Your Co-Builder. Ship on Solana.</div>
+                    <div class="banner-subtitle">Web3 Developer Collaboration Platform</div>
+                </div>
+            </div>
+            <button class="download-btn" onclick="downloadBanner()">Download Twitter Banner</button>
+        </div>
+        
+        <!-- Instructions -->
+        <div class="instructions">
+            <h3>📸 How to Use These Assets</h3>
+            <ol>
+                <li>Click the download buttons above to save the images</li>
+                <li>Go to your Twitter profile and click <code>Edit profile</code></li>
+                <li>Click on the profile picture circle and upload the <strong>400x400</strong> image</li>
+                <li>Click on the header area and upload the <strong>1500x500</strong> banner</li>
+                <li>Save your changes!</li>
+            </ol>
+            
+            <h3 style="margin-top: 30px;">✨ Pro Tips</h3>
+            <ul style="color: #cbd5e1; line-height: 1.8;">
+                <li>Profile picture works best as a circle - the logo is centered perfectly</li>
+                <li>Banner has a subtle glow effect that looks premium</li>
+                <li>Dark theme matches your app's aesthetic</li>
+                <li>All assets are high-resolution and optimized for Twitter</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        function downloadProfilePic() {
+            const element = document.getElementById('profile-pic');
+            html2canvas(element, {
+                width: 400,
+                height: 400,
+                scale: 2,
+                backgroundColor: null
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'c0foundr-profile-pic.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        }
+        
+        function downloadBanner() {
+            const element = document.getElementById('twitter-banner');
+            html2canvas(element, {
+                width: 1500,
+                height: 500,
+                scale: 2,
+                backgroundColor: null
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'c0foundr-twitter-banner.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</body>
+</html>

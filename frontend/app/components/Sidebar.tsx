@@ -15,6 +15,7 @@ export default function Sidebar() {
   const { program } = useAnchorProgram();
   const [exploreOpen, setExploreOpen] = useState(true);
   const [pendingCount, setPendingCount] = useState(0);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const refreshInFlight = useRef(false);
 
   const canQuery = useMemo(() => !!program && !!publicKey, [program, publicKey]);
@@ -179,7 +180,36 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className={`hidden lg:block fixed left-0 top-0 h-screen w-64 bg-(--surface) border-r border-(--border) overflow-y-auto ${premium.className}`}>
+    <>
+      {/* Mobile Menu Button */}
+      <button
+        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-(--surface) border border-(--border) text-(--text-primary) hover:bg-(--surface-hover) transition-colors"
+        aria-label="Toggle menu"
+      >
+        {mobileMenuOpen ? (
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        ) : (
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        )}
+      </button>
+
+      {/* Mobile Overlay */}
+      {mobileMenuOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/50 z-40"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside className={`fixed left-0 top-0 h-screen w-64 bg-(--surface) border-r border-(--border) overflow-y-auto transition-transform duration-300 z-40 lg:z-auto lg:translate-x-0 ${
+        mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+      } lg:block ${premium.className}`}>
       <div className="p-6">
         {/* Logo */}
         <Link href="/" className="block mb-8">
@@ -216,6 +246,7 @@ export default function Sidebar() {
                     <Link
                       key={item.href}
                       href={item.href}
+                      onClick={() => setMobileMenuOpen(false)}
                       className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                         isActive(item.href)
                           ? 'bg-(--surface-hover) text-(--text-primary) before:content-[""] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-6 before:w-1 before:rounded-r-full before:bg-[#00D4AA]'
@@ -238,5 +269,6 @@ export default function Sidebar() {
         </div>
       </div>
     </aside>
+    </>
   );
 }

@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { usePathname } from 'next/navigation';
 import dynamic from 'next/dynamic';
 const InlineWalletSelector = dynamic(() => import('./SelectWalletButton'), { ssr: false });
 import { Sora } from 'next/font/google';
@@ -17,8 +16,6 @@ const premium = Sora({ subsets: ['latin'], weight: ['500','600'] });
 
 export default function Navbar() {
   const { publicKey } = useWallet();
-  const pathname = usePathname();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { program, provider } = useAnchorProgram();
   const [pendingCount, setPendingCount] = useState(0);
   const [hasProfile, setHasProfile] = useState(false);
@@ -145,20 +142,6 @@ export default function Navbar() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canQuery]);
 
-  const navLinks = [
-    { href: '/', label: 'Home' },
-    { href: '/projects', label: 'Projects' },
-    { href: '/founders', label: 'Founders' },
-    { href: '/dashboard', label: 'Dashboard' },
-    { href: '/requests', label: 'Requests', showBadge: true as const },
-    { href: '/profile', label: 'My Profile' },
-  ];
-
-  const isActive = (path: string) => {
-    if (path === '/') return pathname === '/';
-    return pathname?.startsWith(path);
-  };
-
   return (
     <>
     <NotificationProvider />
@@ -190,9 +173,9 @@ export default function Navbar() {
               <InlineWalletSelector />
             </div>
 
-            {/* Requests (LinkedIn-style badge) */}
+            {/* Requests (LinkedIn-style badge) - Desktop only */}
             {publicKey && (
-              <Link href="/requests" className="relative inline-flex items-center justify-center w-10 h-10 rounded-full border border-(--border) bg-(--surface) hover:bg-(--surface-hover)">
+              <Link href="/requests" className="hidden md:inline-flex relative items-center justify-center w-10 h-10 rounded-full border border-(--border) bg-(--surface) hover:bg-(--surface-hover)">
                 {/* Message icon */}
                 <svg className="w-5 h-5 text-(--text-secondary)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h6m-9 8l3.6-3.6A2 2 0 0 1 9.6 16H18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v14z" />
@@ -204,57 +187,8 @@ export default function Navbar() {
                 )}
               </Link>
             )}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-(--text-secondary) hover:text-(--text-primary)"
-            >
-              {mobileMenuOpen ? (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              ) : (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              )}
-            </button>
           </div>
         </div>
-
-        {/* Mobile Navigation Drawer */}
-        {mobileMenuOpen && (
-          <>
-            {/* Overlay */}
-            <div
-              className="fixed inset-0 z-40 bg-black/40 md:hidden"
-              onClick={() => setMobileMenuOpen(false)}
-            />
-            {/* Drawer panel */}
-            <div className="fixed top-16 inset-x-0 z-50 md:hidden bg-(--surface) border-b border-(--border) shadow-lg">
-              <div className="px-4 py-3 space-y-1">
-                {navLinks.map((l) => (
-                  <Link
-                    key={l.href}
-                    href={l.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium ${
-                      isActive(l.href)
-                        ? 'bg-(--surface-hover) text-(--text-primary)'
-                        : 'text-(--text-secondary) hover:bg-(--surface-hover) hover:text-(--text-primary)'
-                    }`}
-                  >
-                    <span>{l.label}</span>
-                    {l.showBadge && publicKey && pendingCount > 0 && (
-                      <span className="h-5 px-1.5 flex items-center justify-center rounded-full bg-[#00D4AA] text-white text-[11px] font-semibold">
-                        {pendingCount > 99 ? '99+' : pendingCount}
-                      </span>
-                    )}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </>
-        )}
       </div>
     </nav>
     </>

@@ -34,13 +34,18 @@ export const IPFS_GATEWAY = 'https://gateway.pinata.cloud/ipfs/';
 
 export const cidToUrl = (cid?: string) => (cid ? `${IPFS_GATEWAY}${cid}` : '');
 
+// Dev-only logging helpers to avoid noisy logs in production
+const __isDev = typeof process !== 'undefined' && process.env?.NODE_ENV !== 'production';
+const devLog = (...args: any[]) => { if (__isDev) console.log(...args); };
+const devWarn = (...args: any[]) => { if (__isDev) console.warn(...args); };
+
 /**
  * Upload image to IPFS (simulated for MVP)
  * In production, integrate with Pinata, Web3.Storage, or NFT.Storage
  */
 export async function uploadImageToIPFS(file: File): Promise<string> {
   // Try production route first (Pinata via serverless), fallback to local mock
-  console.log('🚀 Uploading image to Pinata IPFS...', { name: file.name, size: file.size });
+  devLog('🚀 Uploading image to Pinata IPFS...', { name: file.name, size: file.size });
   try {
     const form = new FormData();
     form.append('file', file);
@@ -48,7 +53,7 @@ export async function uploadImageToIPFS(file: File): Promise<string> {
     if (res.ok) {
       const data = await res.json();
       const cid: string = data.cid;
-      console.log('✅ Successfully uploaded to Pinata IPFS!', { 
+      devLog('✅ Successfully uploaded to Pinata IPFS!', { 
         cid, 
         url: `https://gateway.pinata.cloud/ipfs/${cid}` 
       });
@@ -72,7 +77,7 @@ export async function uploadImageToIPFS(file: File): Promise<string> {
   }
 
   // Fallback: local mock (only used if Pinata fails)
-  console.warn('⚠️ Falling back to local mock storage (Pinata unavailable)');
+  devWarn('⚠️ Falling back to local mock storage (Pinata unavailable)');
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onloadend = async () => {
