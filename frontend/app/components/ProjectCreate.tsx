@@ -6,6 +6,8 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { useAnchorProgram, getUserPDA } from '../hooks/useAnchorProgram';
 import { PublicKey, SystemProgram } from '@solana/web3.js';
 import { Sora } from 'next/font/google';
+import { uploadImageToIPFS } from '../utils/ipfs';
+import { getProjectPDA } from '../utils/programHelpers';
 
 const premium = Sora({ subsets: ['latin'], weight: ['600', '700'] });
 
