@@ -225,11 +225,6 @@ export default function ProjectDetailPage() {
 
   const sendCollabRequest = async () => {
     if (!publicKey || !program || !project) return;
-    if (!hasProfile) {
-      alert('Please create your profile before sending collaboration requests.');
-      router.push('/profile');
-      return;
-    }
 
     // Preflight: Block if an existing non-rejected request already exists
     // If rejected, delete it first to free the PDA for a new request

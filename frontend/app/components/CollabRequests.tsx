@@ -3,12 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useAnchorProgram } from '../hooks/useAnchorProgram';
+import { PublicKey } from '@solana/web3.js';
 
 export default function CollabRequests() {
   const { publicKey } = useWallet();
   const { program } = useAnchorProgram();
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [userProfiles, setUserProfiles] = useState<Map<string, any>>(new Map());
 
   useEffect(() => {
     if (publicKey && program) {
@@ -29,6 +31,28 @@ export default function CollabRequests() {
       );
       
       setRequests(myRequests);
+      
+      // Fetch user profiles for all senders
+      const uniqueSenders = [...new Set(myRequests.map(req => req.account.from.toString()))];
+      const profiles = new Map();
+      
+      for (const senderWallet of uniqueSenders) {
+        try {
+          const [userPda] = await PublicKey.findProgramAddress(
+            [Buffer.from('user'), new PublicKey(senderWallet).toBuffer()],
+            (program as any).programId
+          );
+          const profile = await (program as any).account.user.fetchNullable(userPda);
+          if (profile) {
+            profiles.set(senderWallet, profile);
+          }
+        } catch (error) {
+          // User doesn't have a profile, that's okay
+          console.log(`No profile found for wallet ${senderWallet}`);
+        }
+      }
+      
+      setUserProfiles(profiles);
     } catch (error) {
       console.error('Error fetching requests:', error);
     }
@@ -115,19 +139,37 @@ export default function CollabRequests() {
         <p className="text-gray-400 text-center py-4">No collaboration requests received yet</p>
       ) : (
         <div className="space-y-4">
-          {requests.map((request, idx) => (
-            <div key={idx} className="bg-gray-700 rounded-lg p-4">
-              <div className="flex justify-between items-start mb-3">
-                <div className="flex-1">
-                  <p className="text-white font-semibold mb-1">
-                    From: {request.account.from.toString().slice(0, 16)}...
-                  </p>
-                  <p className="text-gray-400 text-sm mb-2">
-                    Project: {request.account.project.toString().slice(0, 16)}...
-                  </p>
+          {requests.map((request, idx) => {
+            const senderWallet = request.account.from.toString();
+            const senderProfile = userProfiles.get(senderWallet);
+            
+            return (
+              <div key={idx} className="bg-gray-700 rounded-lg p-4">
+                <div className="flex justify-between items-start mb-3">
+                  <div className="flex-1">
+                    {senderProfile ? (
+                      <div>
+                        <p className="text-white font-semibold mb-1">
+                          {senderProfile.display_name || senderProfile.username || 'Anonymous Collaborator'}
+                        </p>
+                        {senderProfile.role && (
+                          <p className="text-gray-400 text-sm">{senderProfile.role}</p>
+                        )}
+                      </div>
+                    ) : (
+                      <div>
+                        <p className="text-white font-semibold mb-1">Wallet-only Collaborator</p>
+                        <p className="text-gray-400 text-sm break-all font-mono">
+                          {senderWallet.slice(0, 20)}...
+                        </p>
+                      </div>
+                    )}
+                    <p className="text-gray-400 text-sm mt-1">
+                      Project: {request.account.project.toString().slice(0, 16)}...
+                    </p>
+                  </div>
+                  {getStatusBadge(request.account.status)}
                 </div>
-                {getStatusBadge(request.account.status)}
-              </div>
               
               <div className="bg-gray-800 rounded p-3 mb-3">
                 <p className="text-gray-300 text-sm">{request.account.message}</p>
