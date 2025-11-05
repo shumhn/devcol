@@ -98,31 +98,31 @@ export default function Home() {
   const featured = useMemo(() => projects.slice(0, 6), [projects]);
 
   return (
-    <div className="min-h-screen">
-      <main className="max-w-7xl mx-auto px-4 py-10">
+    <div className="min-h-screen bg-(--background)">
+      <main className="max-w-7xl mx-auto px-4 py-10 bg-(--background)">
         {/* Hero */}
         <section className="mb-20 pt-16">
           <div className="max-w-5xl mx-auto text-center">
             <div className="mb-5">
-              <span className="text-gray-500 text-sm font-semibold uppercase tracking-wider">Solana Developer Collaboration Platform</span>
+              <span className="text-(--text-secondary) text-sm font-medium uppercase tracking-wider">Solana Developer Collaboration Platform</span>
             </div>
             <h1 className={`${display.className} text-6xl md:text-7xl font-black mb-4 leading-[0.95] uppercase tracking-tight`} aria-label="Build the next killer project">
-              <span className="text-gray-900 block animate-reveal-up" style={{ ['--delay' as any]: '0ms' }}>BUILD THE NEXT</span>
+              <span className="text-(--text-primary) block animate-reveal-up" style={{ ['--delay' as any]: '0ms' }}>BUILD THE NEXT</span>
               <span className="block animate-reveal-up" style={{ ['--delay' as any]: '200ms' }}>
                 <span className="headline-shimmer">KILLER PROJECT</span>
               </span>
             </h1>
-            <p className={`${premium.className} text-xl md:text-2xl font-semibold text-gray-700 mb-10 animate-reveal-up`} style={{ ['--delay' as any]: '400ms' }}>
+            <p className={`${premium.className} text-xl md:text-2xl font-semibold text-(--text-secondary) mb-10 animate-reveal-up`} style={{ ['--delay' as any]: '400ms' }}>
               Find your co‑builder. Ship on Solana.
             </p>
-            <p className={`${premium.className} text-gray-600 text-lg mb-12 max-w-2xl mx-auto leading-relaxed`}>
+            <p className={`${premium.className} text-(--text-secondary) text-lg font-medium mb-12 max-w-2xl mx-auto leading-relaxed`}>
               Connect with talented Web3 developers, form teams, and collaborate on projects built on Solana. Cofounder helps you find the right people to bring your ideas to life.
             </p>
             <div className="flex justify-center gap-4">
-              <Link href="/projects/new" className="px-8 py-4 bg-[#00D4AA] hover:bg-[#00B894] text-white font-bold rounded-lg transition-all">
+              <Link href="/projects/new" className="px-8 py-4 bg-[#00D4AA] hover:bg-[#00B894] text-white font-black text-lg rounded-lg transition-all shadow-lg hover:shadow-xl">
                 Start Building
               </Link>
-              <Link href="/founders" className="px-8 py-4 bg-gray-900 hover:bg-gray-800 text-white font-bold rounded-lg transition-all">
+              <Link href="/founders" className="px-8 py-4 bg-(--surface-hover) hover:bg-(--surface) text-(--text-primary) font-bold rounded-lg transition-all">
                 Find Teammates
               </Link>
             </div>
@@ -133,10 +133,10 @@ export default function Home() {
         <section className="mb-16">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 uppercase tracking-tight">Featured Projects</h2>
-              <p className="text-gray-500 text-sm mt-1">Exceptional work from the community</p>
+              <h2 className="text-3xl font-bold text-(--text-primary) uppercase tracking-tight">Featured Projects</h2>
+              <p className="text-(--text-muted) text-sm mt-1">Exceptional work from the community</p>
             </div>
-            <Link href="/projects" className="text-sm text-gray-900 hover:text-[#00D4AA] font-semibold flex items-center gap-1 transition-colors uppercase tracking-wide">
+            <Link href="/projects" className="text-sm text-(--text-primary) hover:text-[#00D4AA] font-semibold flex items-center gap-1 transition-colors uppercase tracking-wide">
               View all
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -150,9 +150,9 @@ export default function Home() {
               ))}
             </div>
           ) : featured.length === 0 ? (
-            <div className="rounded-xl bg-white border border-gray-200 p-12 text-center shadow-sm">
+            <div className="rounded-xl bg-(--surface) border border-(--border) p-12 text-center shadow-sm">
               <div className="text-6xl mb-4 opacity-30">🚀</div>
-              <p className="text-gray-600">No projects yet. Be the first to showcase your work.</p>
+              <p className="text-(--text-secondary)">No projects yet. Be the first to showcase your work.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -187,10 +187,10 @@ export default function Home() {
         <section className="mb-16">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 uppercase tracking-tight">Founders</h2>
-              <p className="text-gray-500 text-sm mt-1">The builders behind the projects</p>
+              <h2 className="text-3xl font-bold text-(--text-primary) uppercase tracking-tight">Founders</h2>
+              <p className="text-(--text-muted) text-sm mt-1">The builders behind the projects</p>
             </div>
-            <Link href="/founders" className="text-sm text-gray-900 hover:text-[#00D4AA] font-semibold flex items-center gap-1 transition-colors uppercase tracking-wide">
+            <Link href="/founders" className="text-sm text-(--text-primary) hover:text-[#00D4AA] font-semibold flex items-center gap-1 transition-colors uppercase tracking-wide">
               View all
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -204,9 +204,9 @@ export default function Home() {
               ))}
             </div>
           ) : founders.length === 0 ? (
-            <div className="rounded-xl bg-white border border-gray-200 p-12 text-center shadow-sm">
+            <div className="rounded-xl bg-(--surface) border border-(--border) p-12 text-center shadow-sm">
               <div className="text-6xl mb-4 opacity-30">👤</div>
-              <p className="text-gray-600">No founders yet. Create a profile and submit a project.</p>
+              <p className="text-(--text-secondary)">No founders yet. Create a profile and submit a project.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -214,17 +214,17 @@ export default function Home() {
                 <Link
                   key={f.wallet}
                   href={`/profile?wallet=${f.wallet}`}
-                  className="group rounded-xl bg-white border border-gray-200 hover:border-[#00D4AA] hover:shadow-md transition-all p-5"
+                  className="group rounded-xl bg-(--surface) border border-(--border) hover:border-[#00D4AA] hover:shadow-md transition-all p-5"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <div className="text-gray-900 font-bold">{f.username}</div>
-                    <span className="text-xs text-gray-500 font-medium">{f.projects} projects</span>
+                    <div className="text-(--text-primary) font-bold">{f.username}</div>
+                    <span className="text-xs text-(--text-muted) font-medium">{f.projects} projects</span>
                   </div>
                   {f.bio && (
-                    <p className="text-sm text-gray-600 line-clamp-2">{f.bio}</p>
+                    <p className="text-sm text-(--text-secondary) line-clamp-2">{f.bio}</p>
                   )}
                   {!f.bio && (
-                    <p className="text-sm text-gray-500">{f.wallet.slice(0, 6)}…{f.wallet.slice(-4)}</p>
+                    <p className="text-sm text-(--text-muted)">{f.wallet.slice(0, 6)}…{f.wallet.slice(-4)}</p>
                   )}
                 </Link>
               ))}

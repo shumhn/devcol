@@ -134,12 +134,12 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className={`fixed left-0 top-0 h-screen w-64 bg-white border-r border-gray-200 overflow-y-auto ${premium.className}`}>
+    <aside className={`fixed left-0 top-0 h-screen w-64 bg-(--background) border-r border-(--border) overflow-y-auto ${premium.className}`}>
       <div className="p-6">
         {/* Logo */}
         <Link href="/" className="block mb-8">
-          <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">Cofounder</h1>
-          <p className="text-xs text-gray-500 mt-1 tracking-wide uppercase">Developer Collaboration</p>
+          <h1 className="text-2xl font-semibold text-(--text-primary) tracking-tight">Cofounder</h1>
+          <p className="text-xs text-(--text-secondary) mt-1 tracking-wide uppercase">Developer Collaboration</p>
         </Link>
 
         {/* Navigation Sections */}
@@ -149,7 +149,7 @@ export default function Sidebar() {
               {section.collapsible ? (
                 <button
                   onClick={section.toggle}
-                  className="flex items-center justify-between w-full text-sm font-semibold text-gray-900 mb-3 tracking-wide"
+                  className="flex items-center justify-between w-full text-sm font-semibold text-(--text-primary) mb-3 tracking-wide"
                 >
                   <span>{section.title}</span>
                   <svg
@@ -162,7 +162,7 @@ export default function Sidebar() {
                   </svg>
                 </button>
               ) : (
-                <h3 className="text-sm font-semibold text-gray-900 mb-3 tracking-wide uppercase">{section.title}</h3>
+                <h3 className="text-sm font-semibold text-(--text-primary) mb-3 tracking-wide uppercase">{section.title}</h3>
               )}
 
               {(!section.collapsible || section.isOpen) && (
@@ -173,14 +173,14 @@ export default function Sidebar() {
                       href={item.href}
                       className={`flex items-center justify-between gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors tracking-tight ${
                         isActive(item.href)
-                          ? 'bg-gray-100 text-gray-900'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                          ? 'bg-(--surface-hover) text-(--text-primary)'
+                          : 'text-(--text-secondary) hover:bg-(--surface-hover) hover:text-(--text-primary)'
                       }`}
                     >
                       <span>{item.label}</span>
                       {item.href === '/requests' && pendingCount > 0 && (
                         <span className="
-                         h-5 px-1.5 flex items-center justify-center rounded-full bg-[#00D4AA] text-gray-900 text-[11px] font-semibold">
+                         h-5 px-1.5 flex items-center justify-center rounded-full bg-[#00D4AA] text-white text-[11px] font-semibold">
                           {pendingCount > 99 ? '99+' : pendingCount}
                         </span>
                       )}

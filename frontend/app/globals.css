@@ -1,16 +1,44 @@
 @import "tailwindcss";
 
 :root {
-  --background: #F8F9FA;
-  --foreground: #101828;
+  --background: #0f172a;
+  --foreground: #f8fafc;
+  --surface: #1e293b;
+  --surface-hover: #334155;
+  --border: #475569;
+  --primary: #00D4AA;
+  --primary-hover: #00B894;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+}
+
+/* Bright Theme */
+.theme-bright {
+  --background: #ffffff;
+  --foreground: #1a1a1a;
   --surface: #ffffff;
-  --surface-hover: #f3f4f6;
+  --surface-hover: #f8f8f8;
   --border: #e5e7eb;
   --primary: #00D4AA;
   --primary-hover: #00B894;
-  --text-primary: #101828;
-  --text-secondary: #475569;
-  --text-muted: #64748b;
+  --text-primary: #1a1a1a;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+}
+
+/* Dark Theme */
+.theme-dark {
+  --background: #0f172a;
+  --foreground: #f8fafc;
+  --surface: #1e293b;
+  --surface-hover: #334155;
+  --border: #475569;
+  --primary: #00D4AA;
+  --primary-hover: #00B894;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
 }
 
 body {
@@ -26,8 +54,8 @@ body {
 
 html, body {
   height: 100%;
-  background: #F8F9FA;
-  color: #111827;
+  background: #0f172a;
+  color: #f8fafc;
   overflow-x: hidden;
 }
 
@@ -59,9 +87,9 @@ body::before {
   content: "";
   position: fixed;
   inset: 0;
-  background: radial-gradient(1200px circle at 0% 0%, rgba(0, 212, 170, 0.06), transparent 40%),
-              radial-gradient(900px circle at 100% 0%, rgba(99, 102, 241, 0.06), transparent 40%),
-              radial-gradient(900px circle at 0% 100%, rgba(236, 72, 153, 0.06), transparent 40%);
+  background: radial-gradient(1200px circle at 0% 0%, rgba(0, 212, 170, 0.08), transparent 40%),
+              radial-gradient(900px circle at 100% 0%, rgba(59, 130, 246, 0.08), transparent 40%),
+              radial-gradient(900px circle at 0% 100%, rgba(168, 85, 247, 0.08), transparent 40%);
   z-index: 0;
   pointer-events: none; /* Do not block clicks */
 }
@@ -100,11 +128,11 @@ body::before {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f3f4f6;
+  background: #1e293b;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d1d5db;
+  background: #475569;
   border-radius: 4px;
 }
 
@@ -146,7 +174,7 @@ body::before {
 }
 
 .headline-shimmer {
-  background: linear-gradient(90deg, #111 0%, var(--primary) 50%, #111 100%);
+  background: linear-gradient(90deg, #1e293b 0%, var(--primary) 50%, #1e293b 100%);
   background-size: 200% 100%;
   -webkit-background-clip: text;
   background-clip: text;

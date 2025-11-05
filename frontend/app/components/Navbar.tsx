@@ -11,6 +11,7 @@ import Logo from './Logo';
 const ToastContainer = dynamic(() => import('./Toast').then(m => m.ToastContainer), { ssr: false });
 const NotificationProvider = dynamic(() => import('./NotificationProvider').then(m => m.NotificationProvider), { ssr: false });
 import { useAnchorProgram, getUserPDA } from '../hooks/useAnchorProgram';
+import ThemeToggle from './ThemeToggle';
 
 const premium = Sora({ subsets: ['latin'], weight: ['500','600'] });
 
@@ -160,7 +161,7 @@ export default function Navbar() {
     <>
     <NotificationProvider />
     <ToastContainer />
-    <nav className="sticky top-0 z-50 bg-white border-b border-gray-200">
+    <nav className="sticky top-0 z-50 bg-(--surface) border-b border-(--border)">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pr-6">
         <div className="relative flex items-center h-16 gap-4">
           {/* Left Logo */}
@@ -171,7 +172,7 @@ export default function Navbar() {
           {/* Center Tagline (absolute centered) */}
           <div className="hidden md:flex items-center justify-center absolute left-1/2 -translate-x-1/2 pointer-events-none">
             <div className={`select-none ${premium.className}`}>
-              <div className="px-8 md:px-10 py-2.5 rounded-full border border-gray-300 bg-white/80 backdrop-blur text-lg md:text-xl font-semibold tracking-tight">
+              <div className="px-8 md:px-10 py-2.5 rounded-full border border-(--border) bg-(--surface)/80 backdrop-blur text-lg md:text-xl font-semibold tracking-tight text-(--text-primary)">
                 <span>Co‑build, catch bugs, crush launches.</span>
               </div>
             </div>
@@ -179,6 +180,9 @@ export default function Navbar() {
 
           {/* Right side */}
           <div className="flex items-center space-x-4 ml-auto relative" style={{ zIndex: 9999, pointerEvents: 'auto' }}>
+            {/* Theme Toggle */}
+            <ThemeToggle />
+
             {/* Wallet */}
             <div style={{ zIndex: 10000, position: 'relative', pointerEvents: 'auto' }}>
               <InlineWalletSelector />
@@ -186,23 +190,21 @@ export default function Navbar() {
 
             {/* Requests (LinkedIn-style badge) */}
             {publicKey && (
-              <Link href="/requests" className="relative inline-flex items-center justify-center w-10 h-10 rounded-full border border-gray-300 bg-white hover:bg-gray-50">
+              <Link href="/requests" className="relative inline-flex items-center justify-center w-10 h-10 rounded-full border border-(--border) bg-(--surface) hover:bg-(--surface-hover)">
                 {/* Message icon */}
-                <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-(--text-secondary)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h6m-9 8l3.6-3.6A2 2 0 0 1 9.6 16H18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v14z" />
                 </svg>
                 {pendingCount > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-[#00D4AA] text-gray-900 text-[11px] font-semibold border border-white">
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-[#00D4AA] text-white text-[11px] font-semibold border border-(--surface)">
                     {pendingCount > 99 ? '99+' : pendingCount}
                   </span>
                 )}
               </Link>
             )}
-
-            {/* Mobile menu button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-gray-600 hover:text-gray-900"
+              className="md:hidden p-2 text-(--text-secondary) hover:text-(--text-primary)"
             >
               {mobileMenuOpen ? (
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -217,16 +219,16 @@ export default function Navbar() {
           </div>
         </div>
 
-          {/* Mobile Navigation */}
-          {mobileMenuOpen && (
-            <div className="md:hidden py-4 border-t border-gray-200">
-              <div className="px-4">
-                <div className={`px-5 py-2 rounded-full border border-gray-300 bg-white/80 backdrop-blur text-sm font-semibold tracking-tight text-center ${premium.className}`}>
-                  <span>Co‑build, catch bugs, crush launches.</span>
-                </div>
+        {/* Mobile Navigation */}
+        {mobileMenuOpen && (
+          <div className="md:hidden py-4 border-t border-(--border)">
+            <div className="px-4">
+              <div className={`px-5 py-2 rounded-full border border-(--border) bg-(--surface)/80 backdrop-blur text-sm font-semibold tracking-tight text-center text-(--text-primary) ${premium.className}`}>
+                <span>Co‑build, catch bugs, crush launches.</span>
               </div>
             </div>
-          )}
+          </div>
+        )}
       </div>
     </nav>
     </>

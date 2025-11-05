@@ -18,7 +18,7 @@ export default function DashboardPage() {
   // No wallet connected
   if (!publicKey) {
     return (
-      <div className={`min-h-screen bg-[#F8F9FA] ${premium.className}`}>
+      <div className={`min-h-screen bg-slate-900 ${premium.className}`}>
         <div className="max-w-7xl mx-auto px-4 py-12">
           <EmptyState
             icon="🔌"
@@ -35,7 +35,7 @@ export default function DashboardPage() {
   // Loading state
   if (loading) {
     return (
-      <div className={`min-h-screen bg-[#F8F9FA] ${premium.className}`}>
+      <div className={`min-h-screen bg-slate-900 ${premium.className}`}>
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="mb-8">
             <div className="h-10 bg-gray-200 rounded-lg w-48 mb-2 animate-pulse"></div>
@@ -54,7 +54,7 @@ export default function DashboardPage() {
   // No profile yet
   if (!profile) {
     return (
-      <div className={`min-h-screen bg-[#F8F9FA] ${premium.className}`}>
+      <div className={`min-h-screen bg-slate-900 ${premium.className}`}>
         <div className="max-w-7xl mx-auto px-4 py-12">
           <EmptyState
             icon="👤"
@@ -93,12 +93,12 @@ export default function DashboardPage() {
       });
 
   return (
-    <div className={`min-h-screen bg-[#F8F9FA] ${premium.className}`}>
-      <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className={`min-h-screen bg-(--background) ${premium.className}`}>
+      <div className="max-w-7xl mx-auto px-4 py-8 bg-(--background)">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 tracking-tight mb-2">Dashboard</h1>
-          <p className="text-gray-600 text-lg">Welcome back, <span className="text-[#00D4AA] font-semibold">@{profile?.username || 'Developer'}</span>!</p>
+          <h1 className="text-4xl font-bold text-(--text-primary) tracking-tight mb-2">Dashboard</h1>
+          <p className="text-(--text-secondary) text-lg">Welcome back, <span className="text-[#00D4AA] font-semibold">@{profile?.username || 'Developer'}</span>!</p>
         </div>
 
         {/* Stats Grid - Premium Bright Colors */}
@@ -106,7 +106,7 @@ export default function DashboardPage() {
           {/* Projects Created */}
           <Link
             href={stats.projectsCreated > 0 ? '#my-projects' : '/projects/new'}
-            className="group bg-gradient-to-br from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 rounded-2xl shadow-sm hover:shadow-lg transition-all p-6"
+            className="group bg-linear-to-br from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 rounded-2xl shadow-sm hover:shadow-lg transition-all p-6"
           >
             <div className="flex items-start justify-between mb-3">
               <div className="p-3 bg-white/20 rounded-xl">
@@ -123,7 +123,7 @@ export default function DashboardPage() {
           {/* Pending Reviews */}
           <Link
             href={stats.pendingReviews > 0 ? '#pending-requests' : '/requests'}
-            className="group bg-gradient-to-br from-sky-400 to-sky-500 hover:from-sky-500 hover:to-sky-600 rounded-2xl shadow-sm hover:shadow-lg transition-all p-6"
+            className="group bg-linear-to-br from-sky-400 to-sky-500 hover:from-sky-500 hover:to-sky-600 rounded-2xl shadow-sm hover:shadow-lg transition-all p-6"
           >
             <div className="flex items-start justify-between mb-3">
               <div className="p-3 bg-white/20 rounded-xl">
@@ -140,7 +140,7 @@ export default function DashboardPage() {
           {/* Active Collaborations */}
           <Link
             href={stats.activeCollabs > 0 ? '#active-collabs' : '/projects'}
-            className="group bg-gradient-to-br from-purple-400 to-purple-500 hover:from-purple-500 hover:to-purple-600 rounded-2xl shadow-sm hover:shadow-lg transition-all p-6"
+            className="group bg-linear-to-br from-purple-400 to-purple-500 hover:from-purple-500 hover:to-purple-600 rounded-2xl shadow-sm hover:shadow-lg transition-all p-6"
           >
             <div className="flex items-start justify-between mb-3">
               <div className="p-3 bg-white/20 rounded-xl">
@@ -157,41 +157,41 @@ export default function DashboardPage() {
           {/* Total Applications */}
           <Link
             href={stats.totalApplications > 0 ? '#my-applications' : '/projects'}
-            className="group bg-white border-2 border-gray-200 hover:border-gray-400 hover:shadow-lg rounded-2xl shadow-sm transition-all p-6"
+            className="group bg-(--surface) border-2 border-(--border) hover:border-(--border) hover:shadow-lg rounded-2xl shadow-sm transition-all p-6"
           >
             <div className="flex items-start justify-between mb-3">
-              <div className="p-3 bg-gray-100 rounded-xl">
-                <svg className="w-6 h-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="p-3 bg-(--surface-hover) rounded-xl">
+                <svg className="w-6 h-6 text-(--text-secondary)" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <span className="text-3xl font-bold text-gray-900">{loading ? '...' : stats.totalApplications}</span>
+              <span className="text-3xl font-bold text-(--text-primary)">{loading ? '...' : stats.totalApplications}</span>
             </div>
-            <h3 className="text-gray-700 text-sm font-semibold mb-1">Total Applications</h3>
-            <p className="text-gray-600 text-xs">Requests you've sent</p>
+            <h3 className="text-(--text-secondary) text-sm font-semibold mb-1">Total Applications</h3>
+            <p className="text-(--text-muted) text-xs">Requests you've sent</p>
           </Link>
         </div>
 
         {/* Error State */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-8">
-            <p className="text-red-600 font-medium">{error}</p>
+          <div className="bg-red-900/20 border border-red-700 rounded-2xl p-4 mb-8">
+            <p className="text-red-300 font-medium">{error}</p>
           </div>
         )}
 
         {/* Urgent Action Items */}
         {!loading && stats.pendingReviews > 0 && (
-          <div id="pending-requests" className="bg-gradient-to-r from-red-50 to-orange-50 border-l-4 border-red-500 rounded-2xl p-6 mb-8">
+          <div id="pending-requests" className="bg-linear-to-r from-red-900/20 to-orange-900/20 border-l-4 border-red-500 rounded-2xl p-6 mb-8">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2 mb-1">
+                <h2 className="text-xl font-bold text-(--text-primary) flex items-center gap-2 mb-1">
                   <span className="text-red-500">●</span> Urgent: {stats.pendingReviews} Request{stats.pendingReviews !== 1 ? 's' : ''} Awaiting Review
                 </h2>
-                <p className="text-gray-600 text-sm">Review and respond to collaboration requests for your projects</p>
+                <p className="text-(--text-secondary) text-sm">Review and respond to collaboration requests for your projects</p>
               </div>
               <Link
                 href="/requests"
-                className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors shrink-0"
+                className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
               >
                 Review Now →
               </Link>
@@ -204,12 +204,12 @@ export default function DashboardPage() {
           <section id="my-projects" className="mb-12">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">My Projects</h2>
-                <p className="text-gray-600 text-sm mt-1">Manage and track your projects</p>
+                <h2 className="text-2xl font-bold text-(--text-primary)">My Projects</h2>
+                <p className="text-(--text-secondary) text-sm mt-1">Manage and track your projects</p>
               </div>
               <div className="flex items-center gap-3">
                 {/* Filter Tabs */}
-                <div className="flex gap-2 bg-white border border-gray-200 rounded-lg p-1">
+                <div className="flex gap-2 bg-(--surface) border border-(--border) rounded-lg p-1">
                   {([
                     { key: 'all', label: 'All', count: ownedProjects.length },
                     { key: 'open', label: 'Open', count: ownedProjects.filter((p: any) => p.account.acceptingCollaborations?.open).length },
@@ -220,8 +220,8 @@ export default function DashboardPage() {
                       onClick={() => setProjectFilter(key)}
                       className={`px-4 py-2 rounded-md text-sm font-semibold transition-colors ${
                         projectFilter === key
-                          ? 'bg-gray-900 text-white'
-                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                          ? 'bg-(--surface-hover) text-(--text-primary)'
+                          : 'text-(--text-secondary) hover:bg-(--surface-hover) hover:text-(--text-primary)'
                       }`}
                     >
                       {label} <span className="text-xs ml-1">({count})</span>
@@ -230,7 +230,7 @@ export default function DashboardPage() {
                 </div>
                 <Link
                   href="/projects/new"
-                  className="bg-[#00D4AA] hover:bg-[#00B894] text-gray-900 px-4 py-2 rounded-lg font-semibold text-sm transition-colors"
+                  className="bg-[#00D4AA] hover:bg-[#00B894] text-white px-4 py-2 rounded-lg font-semibold text-sm transition-colors"
                 >
                   + New Project
                 </Link>
@@ -238,8 +238,8 @@ export default function DashboardPage() {
             </div>
 
             {filteredProjects.length === 0 ? (
-              <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center">
-                <p className="text-gray-600 mb-4">No {projectFilter} projects found</p>
+              <div className="bg-(--surface) border border-(--border) rounded-2xl p-12 text-center">
+                <p className="text-(--text-secondary) mb-4">No {projectFilter} projects found</p>
                 {projectFilter !== 'all' && (
                   <button
                     onClick={() => setProjectFilter('all')}
@@ -257,25 +257,25 @@ export default function DashboardPage() {
                     <Link
                       key={project.publicKey.toString()}
                       href={`/projects/${project.publicKey.toString()}`}
-                      className="group bg-white border border-gray-200 hover:border-gray-900 hover:shadow-lg transition-all rounded-2xl p-6"
+                      className="group bg-(--surface) border border-(--border) hover:border-(--border) hover:shadow-lg transition-all rounded-2xl p-6"
                     >
                       <div className="flex items-start justify-between mb-3">
-                        <h3 className="text-lg font-bold text-gray-900 group-hover:text-gray-700 line-clamp-1">
+                        <h3 className="text-lg font-bold text-(--text-primary) group-hover:text-(--text-primary) line-clamp-1">
                           {project.account.name}
                         </h3>
                         <span className={`text-xs px-2.5 py-1 rounded-full font-semibold shrink-0 ${
                           isOpen
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-gray-100 text-gray-600'
+                            ? 'bg-green-900/20 text-green-300'
+                            : 'bg-(--surface-hover) text-(--text-secondary)'
                         }`}>
                           {isOpen ? 'Open' : 'Closed'}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-600 line-clamp-2 mb-4 leading-relaxed">
+                      <p className="text-(--text-secondary) line-clamp-2 mb-4 leading-relaxed">
                         {project.account.description}
                       </p>
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-gray-500">
+                        <span className="text-(--text-muted)">
                           {new Date(project.account.timestamp.toNumber() * 1000).toLocaleDateString()}
                         </span>
                         <span className="text-[#00D4AA] font-semibold group-hover:underline">
@@ -295,8 +295,8 @@ export default function DashboardPage() {
           <section id="my-applications" className="mb-12">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">My Applications</h2>
-                <p className="text-gray-600 text-sm mt-1">Track your collaboration requests</p>
+                <h2 className="text-2xl font-bold text-(--text-primary)">My Applications</h2>
+                <p className="text-(--text-secondary) text-sm mt-1">Track your collaboration requests</p>
               </div>
               <Link
                 href="/requests"
@@ -320,8 +320,8 @@ export default function DashboardPage() {
                   onClick={() => setActiveTab(key)}
                   className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors whitespace-nowrap ${
                     activeTab === key
-                      ? 'bg-gray-900 text-white'
-                      : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-900'
+                      ? 'bg-(--surface-hover) text-(--text-primary)'
+                      : 'bg-(--surface) border border-(--border) text-(--text-secondary) hover:border-(--border)'
                   }`}
                 >
                   {label} <span className="text-xs ml-1">({applicationCounts[key]})</span>
@@ -330,8 +330,8 @@ export default function DashboardPage() {
             </div>
 
             {filteredApplications.length === 0 ? (
-              <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center">
-                <p className="text-gray-600 mb-4">No {activeTab} applications found</p>
+              <div className="bg-(--surface) border border-(--border) rounded-2xl p-12 text-center">
+                <p className="text-(--text-secondary) mb-4">No {activeTab} applications found</p>
                 {activeTab !== 'all' && (
                   <button
                     onClick={() => setActiveTab('all')}
@@ -346,28 +346,28 @@ export default function DashboardPage() {
                 {filteredApplications.slice(0, 5).map((app: any) => {
                   const status = Object.keys(app.account.status)[0];
                   const statusColors: Record<string, string> = {
-                    pending: 'bg-yellow-100 text-yellow-700',
-                    underReview: 'bg-blue-100 text-blue-700',
-                    accepted: 'bg-green-100 text-green-700',
-                    rejected: 'bg-red-100 text-red-700',
+                    pending: 'bg-yellow-900/20 text-yellow-300',
+                    underReview: 'bg-blue-900/20 text-blue-300',
+                    accepted: 'bg-green-900/20 text-green-300',
+                    rejected: 'bg-red-900/20 text-red-300',
                   };
 
                   return (
                     <Link
                       key={app.publicKey.toString()}
                       href={`/requests/${app.publicKey.toString()}`}
-                      className="group bg-white border border-gray-200 hover:border-gray-900 hover:shadow-md transition-all rounded-xl p-4 flex items-center justify-between"
+                      className="group bg-(--surface) border border-(--border) hover:border-(--border) hover:shadow-md transition-all rounded-xl p-4 flex items-center justify-between"
                     >
                       <div className="flex-1 min-w-0 mr-4">
                         <div className="flex items-center gap-2 mb-1">
-                          <p className="text-sm font-semibold text-gray-900">
+                          <p className="text-sm font-semibold text-(--text-primary)">
                             Application to Project
                           </p>
                           <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${statusColors[status]}`}>
                             {status}
                           </span>
                         </div>
-                        <p className="text-xs text-gray-600 line-clamp-1">
+                        <p className="text-xs text-(--text-secondary) line-clamp-1">
                           {app.account.message.slice(0, 100)}...
                         </p>
                       </div>
@@ -395,8 +395,8 @@ export default function DashboardPage() {
           <section id="active-collabs" className="mb-12">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">Active Collaborations</h2>
-                <p className="text-gray-600 text-sm mt-1">Projects you're actively contributing to</p>
+                <h2 className="text-2xl font-bold text-(--text-primary)">Active Collaborations</h2>
+                <p className="text-(--text-secondary) text-sm mt-1">Projects you're actively contributing to</p>
               </div>
             </div>
 
@@ -405,17 +405,17 @@ export default function DashboardPage() {
                 <Link
                   key={project.publicKey.toString()}
                   href={`/projects/${project.publicKey.toString()}`}
-                  className="group bg-gradient-to-br from-green-50 to-teal-50 border border-green-200 hover:border-green-400 hover:shadow-lg transition-all rounded-2xl p-6"
+                  className="group bg-linear-to-br from-green-900/20 to-teal-900/20 border border-green-700 hover:border-green-500 hover:shadow-lg transition-all rounded-2xl p-6"
                 >
                   <div className="flex items-start justify-between mb-3">
-                    <h3 className="text-lg font-bold text-gray-900 group-hover:text-gray-700 line-clamp-1">
+                    <h3 className="text-lg font-bold text-(--text-primary) group-hover:text-(--text-primary) line-clamp-1">
                       {project.account.name}
                     </h3>
                     <span className="text-xs px-2.5 py-1 rounded-full bg-green-500 text-white font-semibold shrink-0">
                       Active
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600 line-clamp-2 mb-4 leading-relaxed">
+                  <p className="text-(--text-secondary) line-clamp-2 mb-4 leading-relaxed">
                     {project.account.description}
                   </p>
                   <span className="text-[#00D4AA] font-semibold text-sm group-hover:underline">
@@ -429,16 +429,16 @@ export default function DashboardPage() {
 
         {/* Empty State - No Projects or Applications */}
         {!loading && ownedProjects.length === 0 && applications.length === 0 && (
-          <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center">
+          <div className="bg-(--surface) border border-(--border) rounded-2xl p-12 text-center">
             <div className="max-w-md mx-auto">
               <div className="text-6xl mb-4">📂</div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Get Started!</h3>
-              <p className="text-gray-600 mb-6">
+              <h3 className="text-2xl font-bold text-(--text-primary) mb-2">Get Started!</h3>
+              <p className="text-(--text-secondary) mb-6">
                 Browse projects and apply for roles that match your skills
               </p>
               <Link
                 href="/projects"
-                className="inline-block bg-[#00D4AA] hover:bg-[#00B894] text-gray-900 px-8 py-3 rounded-lg font-bold transition-colors"
+                className="inline-block bg-[#00D4AA] hover:bg-[#00B894] text-white px-8 py-3 rounded-lg font-bold transition-colors"
               >
                 Browse Projects →
               </Link>

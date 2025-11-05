@@ -6,6 +6,7 @@ import Navbar from "./components/Navbar";
 import Sidebar from './components/Sidebar';
 import RequestStatusMonitor from './components/RequestStatusMonitor';
 import ReceiverNotificationMonitor from './components/ReceiverNotificationMonitor';
+import { ThemeProvider } from './components/ThemeProvider';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,16 +34,18 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <WalletContextProvider>
-          {/* Temporarily disabled to avoid rate limiting */}
-          {/* <RequestStatusMonitor /> */}
-          {/* <ReceiverNotificationMonitor /> */}
-          <Sidebar />
-          <div className="ml-64">
-            <Navbar />
-            <main className="min-h-screen">
-              {children}
-            </main>
-          </div>
+          <ThemeProvider>
+            {/* Temporarily disabled to avoid rate limiting */}
+            {/* <RequestStatusMonitor /> */}
+            {/* <ReceiverNotificationMonitor /> */}
+            <Sidebar />
+            <div className="ml-64">
+              <Navbar />
+              <main className="min-h-screen">
+                {children}
+              </main>
+            </div>
+          </ThemeProvider>
         </WalletContextProvider>
       </body>
     </html>
