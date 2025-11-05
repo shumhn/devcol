@@ -316,7 +316,7 @@ export default function ProjectsPage() {
               onChange={(e) => setFilterStatus(e.target.value)}
               className="w-full bg-gray-50 text-gray-900 rounded-lg px-4 py-2 border border-gray-200 focus:border-gray-900 focus:outline-none transition-colors"
             >
-              <option value="all">All Statuses</option>
+              <option value="all">All Status</option>
               {Object.entries(STATUS_BADGES).map(([key, val]) => (
                 <option key={key} value={key}>
                   {val.label}
@@ -333,7 +333,7 @@ export default function ProjectsPage() {
               onChange={(e) => setFilterTech(e.target.value)}
               className="w-full bg-gray-50 text-gray-900 rounded-lg px-4 py-2 border border-gray-200 focus:border-gray-900 focus:outline-none transition-colors"
             >
-              <option value="all">All Technologies</option>
+              <option value="all">All Technology</option>
               {allTechs.map((tech) => (
                 <option key={tech} value={tech}>
                   {tech}

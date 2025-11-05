@@ -53,6 +53,8 @@ export default function Home() {
 
         // Fetch with retry
         const all = (await rpcWithRetry(() => (program as any).account.project.all())) as any[];
+        // Sort by timestamp descending (newest first)
+        all.sort((a: any, b: any) => (b.account.timestamp?.toNumber() || 0) - (a.account.timestamp?.toNumber() || 0));
         setProjects(all as unknown as ProjectItem[]);
         try {
           const toCache = all.map((p: any) => ({ pubkey: p.publicKey.toString(), account: p.account }));
@@ -103,9 +105,9 @@ export default function Home() {
     load();
   }, [program]);
 
-  const featured = useMemo(() => projects.length > 0 ? projects.slice(0, 6) : [], [projects]);
+  const featured = useMemo(() => projects.length > 0 ? projects.slice(0, 3) : [], [projects]);
   const displayProjects = featured.length > 0 ? featured : mockProjects.slice(0, 3);
-  const displayFounders = founders.length > 0 ? founders : mockFounders.slice(0, 3);
+  const displayFounders = founders.length > 0 ? founders.slice(0, 3) : mockFounders.slice(0, 3);
 
   return (
     <div className="min-h-screen bg-(--background)">
@@ -113,8 +115,12 @@ export default function Home() {
         {/* Hero */}
         <section className="mb-20 pt-16">
           <div className="max-w-5xl mx-auto text-center">
-            <div className="mb-5">
+            <div className="mb-5 flex items-center justify-center gap-3 flex-wrap">
               <span className="text-(--text-secondary) text-sm font-medium uppercase tracking-wider">Solana Developer Collaboration Platform</span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-400 text-[10px] font-bold uppercase tracking-wide">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                Devnet
+              </span>
             </div>
             <h1 className={`${display.className} text-6xl md:text-7xl font-black mb-4 leading-[0.95] uppercase tracking-tight`} aria-label="Build the next killer project">
               <span className="text-(--text-primary) block animate-reveal-up" style={{ ['--delay' as any]: '0ms' }}>BUILD THE NEXT</span>
@@ -141,12 +147,10 @@ export default function Home() {
 
         {/* Featured Projects */}
         <section className="mb-16">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-3xl font-bold text-(--text-primary) uppercase tracking-tight">Featured Projects</h2>
-              <p className="text-(--text-muted) text-sm mt-1">Exceptional work from the community</p>
-            </div>
-            <Link href="/projects" className="text-sm text-(--text-primary) hover:text-[#00D4AA] font-semibold flex items-center gap-1 transition-colors uppercase tracking-wide">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-(--text-primary) uppercase tracking-tight">Featured Projects</h2>
+            <p className="text-(--text-muted) text-sm mt-1">Exceptional work from the community</p>
+            <Link href="/projects" className="inline-flex items-center gap-1 text-sm text-(--text-primary) hover:text-[#00D4AA] font-semibold transition-colors uppercase tracking-wide mt-2">
               View all
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -207,12 +211,10 @@ export default function Home() {
 
         {/* Founders Spotlight */}
         <section className="mb-16">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-3xl font-bold text-(--text-primary) uppercase tracking-tight">Founders</h2>
-              <p className="text-(--text-muted) text-sm mt-1">The builders behind the projects</p>
-            </div>
-            <Link href="/founders" className="text-sm text-(--text-primary) hover:text-[#00D4AA] font-semibold flex items-center gap-1 transition-colors uppercase tracking-wide">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-(--text-primary) uppercase tracking-tight">Founders</h2>
+            <p className="text-(--text-muted) text-sm mt-1">The builders behind the projects</p>
+            <Link href="/founders" className="inline-flex items-center gap-1 text-sm text-(--text-primary) hover:text-[#00D4AA] font-semibold transition-colors uppercase tracking-wide mt-2">
               View all
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
