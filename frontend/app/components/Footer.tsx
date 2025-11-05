@@ -9,24 +9,24 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className={`bg-[#1a202c] border-t border-gray-700 ${premium.className}`}>
+    <footer className={`bg-(--surface) border-t border-(--border) ${premium.className}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           {/* Brand */}
           <div className="text-center md:text-left">
-            <p className="text-gray-400 text-sm">
-              © {currentYear} <span className="text-white font-semibold">c0Foundr</span> • Built on Solana
+            <p className="text-(--text-secondary) text-sm">
+              © {currentYear} <span className="text-(--text-primary) font-semibold">c0Foundr</span> • Built on Solana
             </p>
           </div>
 
           {/* Resources */}
           <div className="flex items-center gap-5">
-            <h4 className="text-sm font-semibold text-gray-400">Resources:</h4>
+            <h4 className="text-sm font-semibold text-(--text-secondary)">Resources:</h4>
             <a
               href="https://solana.com/docs"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-gray-400 hover:text-[#00D4AA] transition-colors text-sm"
+              className="text-(--text-secondary) hover:text-[#00D4AA] transition-colors text-sm"
             >
               Solana Docs
             </a>
@@ -34,7 +34,7 @@ export default function Footer() {
               href="https://www.anchor-lang.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-gray-400 hover:text-[#00D4AA] transition-colors text-sm"
+              className="text-(--text-secondary) hover:text-[#00D4AA] transition-colors text-sm"
             >
               Anchor
             </a>
@@ -42,7 +42,7 @@ export default function Footer() {
               href="https://www.rust-lang.org"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-gray-400 hover:text-[#00D4AA] transition-colors text-sm"
+              className="text-(--text-secondary) hover:text-[#00D4AA] transition-colors text-sm"
             >
               Rust
             </a>
@@ -54,7 +54,7 @@ export default function Footer() {
               href="https://github.com/shumhn"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-gray-400 hover:text-[#00D4AA] transition-colors"
+              className="text-(--text-secondary) hover:text-[#00D4AA] transition-colors"
               aria-label="GitHub"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -65,7 +65,7 @@ export default function Footer() {
               href="https://x.com/devsh_"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-gray-400 hover:text-[#00D4AA] transition-colors"
+              className="text-(--text-secondary) hover:text-[#00D4AA] transition-colors"
               aria-label="Twitter"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -77,7 +77,7 @@ export default function Footer() {
                 window.location.href = 'mailto:theshumanhere@gmail.com';
                 navigator.clipboard.writeText('theshumanhere@gmail.com').catch(() => {});
               }}
-              className="text-gray-400 hover:text-[#00D4AA] transition-colors"
+              className="text-(--text-secondary) hover:text-[#00D4AA] transition-colors"
               aria-label="Email"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>

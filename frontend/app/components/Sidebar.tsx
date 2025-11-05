@@ -179,12 +179,12 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className={`hidden lg:block fixed left-0 top-0 h-screen w-64 bg-[#1a202c] border-r border-gray-700 overflow-y-auto ${premium.className}`}>
+    <aside className={`hidden lg:block fixed left-0 top-0 h-screen w-64 bg-(--surface) border-r border-(--border) overflow-y-auto ${premium.className}`}>
       <div className="p-6">
         {/* Logo */}
         <Link href="/" className="block mb-8">
-          <h1 className="text-2xl font-semibold tracking-tight" style={{ color: '#FFFFFF' }}>c0Foundr</h1>
-          <p className="text-xs mt-1 tracking-wide uppercase" style={{ color: '#9CA3AF' }}>Developer Collaboration</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-(--text-primary)">c0Foundr</h1>
+          <p className="text-xs mt-1 tracking-wide uppercase text-(--text-secondary)">Developer Collaboration</p>
         </Link>
 
         {/* Navigation Sections */}
@@ -194,7 +194,7 @@ export default function Sidebar() {
               {section.collapsible ? (
                 <button
                   onClick={section.toggle}
-                  className="flex items-center justify-between w-full text-xs font-semibold text-gray-300 mb-3 tracking-widest uppercase"
+                  className="flex items-center justify-between w-full text-xs font-semibold text-(--text-secondary) mb-3 tracking-widest uppercase"
                 >
                   <span>{section.title}</span>
                   <svg
@@ -207,7 +207,7 @@ export default function Sidebar() {
                   </svg>
                 </button>
               ) : (
-                <h3 className="text-xs font-semibold text-gray-300 mb-3 tracking-widest uppercase">{section.title}</h3>
+                <h3 className="text-xs font-semibold text-(--text-secondary) mb-3 tracking-widest uppercase">{section.title}</h3>
               )}
 
               {(!section.collapsible || section.isOpen) && (
@@ -218,14 +218,14 @@ export default function Sidebar() {
                       href={item.href}
                       className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                         isActive(item.href)
-                          ? 'bg-[#2d3748] text-white before:content-[""] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-6 before:w-1 before:rounded-r-full before:bg-[#00D4AA]'
-                          : 'text-gray-300 hover:bg-[#2d3748] hover:text-white'
+                          ? 'bg-(--surface-hover) text-(--text-primary) before:content-[""] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-6 before:w-1 before:rounded-r-full before:bg-[#00D4AA]'
+                          : 'text-(--text-secondary) hover:bg-(--surface-hover) hover:text-(--text-primary)'
                       }`}
                     >
                       {renderIcon(item.href)}
                       <span className="flex-1">{item.label}</span>
                       {item.href === '/requests' && pendingCount > 0 && (
-                        <span className="h-5 px-1.5 flex items-center justify-center rounded-full bg-[#00D4AA] text-gray-900 text-[11px] font-semibold">
+                        <span className="h-5 px-1.5 flex items-center justify-center rounded-full bg-[#00D4AA] text-(--background) text-[11px] font-semibold">
                           {pendingCount > 99 ? '99+' : pendingCount}
                         </span>
                       )}

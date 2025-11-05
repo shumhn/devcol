@@ -56,6 +56,9 @@ export default function ProjectsPage() {
   useEffect(() => {
     if (program) {
       fetchProjects();
+    } else {
+      // No wallet connected
+      setLoading(false);
     }
   }, [program]);
 
@@ -351,6 +354,14 @@ export default function ProjectsPage() {
         <div className="text-center py-16">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-gray-900 mb-4"></div>
           <p className="text-gray-600 font-medium">Loading projects...</p>
+        </div>
+      ) : !publicKey ? (
+        <div className="text-center py-16 bg-(--surface) border border-(--border) rounded-2xl shadow-sm">
+          <div className="text-6xl mb-4">🔌</div>
+          <h3 className="text-xl font-bold text-(--text-primary) mb-2">Connect Your Wallet</h3>
+          <p className="text-(--text-secondary) mb-6">
+            Connect your Phantom wallet to view and create projects
+          </p>
         </div>
       ) : filteredProjects.length === 0 ? (
         <div className="text-center py-16 bg-white border border-gray-200 rounded-2xl shadow-sm">

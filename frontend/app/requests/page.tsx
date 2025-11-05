@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { PublicKey } from '@solana/web3.js';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useAnchorProgram } from '../hooks/useAnchorProgram';
+import { EmptyState } from '../components/EmptyState';
 import { Sora } from 'next/font/google';
 
 const premium = Sora({ subsets: ['latin'], weight: ['400', '500', '600'] });
@@ -325,7 +326,7 @@ function RequestsPageContent() {
   const Section = ({ items, type }: { items: any[]; type: 'open' | 'received' | 'sent' }) => (
     <div>
       {items.length === 0 ? (
-        <div className="text-gray-600 bg-white border border-gray-200 rounded-lg p-6 text-center text-sm">
+        <div className="text-(--text-secondary) bg-(--surface) border border-(--border) rounded-lg p-6 text-center text-sm">
           No {type} collaboration requests.
         </div>
       ) : (
@@ -342,14 +343,14 @@ function RequestsPageContent() {
               <div
                 key={reqId}
                 ref={el => { requestRefs.current[reqId] = el; }}
-                className={`bg-white border rounded-lg p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3 shadow-sm transition-all duration-500 ${
-                  isHighlighted ? 'border-[#00D4AA] border-2 bg-[#00D4AA]/5' : 'border-gray-200'
+                className={`bg-(--surface) border rounded-lg p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3 shadow-sm transition-all duration-500 ${
+                  isHighlighted ? 'border-[#00D4AA] border-2 bg-[#00D4AA]/5' : 'border-(--border)'
                 }`}
               >
                 <div>
                   <div className="flex items-center gap-2">
                     <StatusBadge status={status} />
-                    <span className="text-xs text-gray-500">{new Date(req.account.timestamp * 1000).toLocaleString()}</span>
+                    <span className="text-xs text-(--text-secondary)">{new Date(req.account.timestamp * 1000).toLocaleString()}</span>
                   </div>
                   <div className="mt-1">
                     <Link
@@ -359,7 +360,7 @@ function RequestsPageContent() {
                     >
                       View full request →
                     </Link>
-                    <span className="mx-2 text-gray-400">•</span>
+                    <span className="mx-2 text-(--text-secondary)">•</span>
                     <Link
                       className="text-sm text-[#00D4AA] hover:underline font-medium"
                       href={`/projects/${req.account.project.toString()}`}
@@ -368,13 +369,13 @@ function RequestsPageContent() {
                       Project
                     </Link>
                   </div>
-                  <div className="mt-2 text-sm text-gray-700 whitespace-pre-wrap">{body || req.account.message}</div>
+                  <div className="mt-2 text-sm text-(--text-secondary) whitespace-pre-wrap">{body || req.account.message}</div>
                   <div className="mt-2 flex flex-wrap items-center gap-3 text-xs">
                     {gh && (
-                      <a href={gh} target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-gray-900 underline">GitHub</a>
+                      <a href={gh} target="_blank" rel="noopener noreferrer" className="text-(--text-secondary) hover:text-(--text-primary) underline">GitHub</a>
                     )}
                     {tw && (
-                      <a href={`https://twitter.com/${tw.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-gray-900 underline">@{tw.replace(/^@/, '')}</a>
+                      <a href={`https://twitter.com/${tw.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" className="text-(--text-secondary) hover:text-(--text-primary) underline">@{tw.replace(/^@/, '')}</a>
                     )}
                     {req.account.desiredRole && (
                       <span className="bg-purple-50 text-purple-700 border border-purple-200 px-2 py-0.5 rounded-full text-xs font-medium">
@@ -382,7 +383,7 @@ function RequestsPageContent() {
                       </span>
                     )}
                   </div>
-                  <div className="mt-2 text-xs text-gray-500">
+                  <div className="mt-2 text-xs text-(--text-secondary)">
                     {type === 'received' ? (
                       <>From: <Username pk={req.account.from.toString()} /></>
                     ) : (
@@ -397,46 +398,46 @@ function RequestsPageContent() {
                       <button
                         disabled={actingId === req.publicKey.toString()}
                         onClick={() => accept(req)}
-                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium disabled:opacity-50"
+                        className="bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors shadow-sm disabled:opacity-60"
                       >
-                        {actingId === req.publicKey.toString() ? 'Processing…' : 'Accept'}
+                        Accept
                       </button>
                       <button
                         disabled={actingId === req.publicKey.toString()}
                         onClick={() => reject(req)}
-                        className="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium disabled:opacity-50"
+                        className="border border-(--border) hover:border-[#ff6b6b] text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors"
                       >
                         Reject
                       </button>
                     </>
                   )}
-                  {/* Sender actions for pending */}
+                  {/* Sender actions */}
                   {youAreSender && isPending && (
-                    <>
-                      <button
-                        disabled={actingId === req.publicKey.toString()}
-                        onClick={() => updateMsg(req)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium disabled:opacity-50"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        disabled={actingId === req.publicKey.toString()}
-                        onClick={() => withdraw(req)}
-                        className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium disabled:opacity-50"
-                      >
-                        Withdraw
-                      </button>
-                    </>
+                    <button
+                      disabled={actingId === req.publicKey.toString()}
+                      onClick={() => withdraw(req)}
+                      className="border border-(--border) hover:border-[#ff6b6b] text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors"
+                    >
+                      Withdraw
+                    </button>
+                  )}
+                  {/* Sender can update message */}
+                  {youAreSender && (
+                    <button
+                      disabled={actingId === req.publicKey.toString()}
+                      onClick={() => updateMsg(req)}
+                      className="bg-(--surface-hover) hover:bg-(--surface) text-(--text-primary) text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors border border-(--border)"
+                    >
+                      Update
+                    </button>
                   )}
                   {/* Recipient delete for resolved */}
                   {youAreRecipient && !isPending && (
                     <button
-                      disabled={actingId === req.publicKey.toString()}
                       onClick={() => delRequest(req)}
-                      className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium disabled:opacity-50"
+                      className="border border-(--border) hover:border-[#ff6b6b] text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors"
                     >
-                      Delete
+                      Remove
                     </button>
                   )}
                 </div>
@@ -455,28 +456,31 @@ function RequestsPageContent() {
 
   if (!publicKey) {
     return (
-      <div className={`min-h-screen bg-[#F8F9FA] ${premium.className}`}>
+      <div className={`min-h-screen bg-(--background) ${premium.className}`}>
         <div className="max-w-5xl mx-auto px-6 py-12">
-          <div className="bg-white rounded-2xl p-8 text-center border border-gray-200 shadow-sm">
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Connect Your Wallet</h2>
-            <p className="text-sm text-gray-600">Connect your wallet to view collaboration requests</p>
-          </div>
+          <EmptyState
+            icon="🔌"
+            title="Connect Your Wallet"
+            description="Connect your Phantom wallet to view collaboration requests"
+            actionLabel="Connect Wallet"
+            onAction={() => {}}
+          />
         </div>
       </div>
     );
   }
 
   return (
-    <div className={`min-h-screen bg-[#F8F9FA] ${premium.className}`}>
+    <div className={`min-h-screen bg-(--background) ${premium.className}`}>
       <div className="max-w-5xl mx-auto px-6 py-8">
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-gray-900">Collaboration Inbox</h1>
-            <p className="text-sm text-gray-600">All your collaboration requests and messages</p>
+            <h1 className="text-2xl font-semibold text-(--text-primary)">Collaboration Inbox</h1>
+            <p className="text-sm text-(--text-secondary)">All your collaboration requests and messages</p>
           </div>
           <button
             onClick={fetchAll}
-            className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-medium"
+            className="bg-[#00D4AA] hover:bg-[#00B894] text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm transition-colors"
           >
             Refresh
           </button>
@@ -485,30 +489,30 @@ function RequestsPageContent() {
         <div className="mb-6 flex gap-2">
           <button
             onClick={() => setActiveTab('open')}
-            className={`px-4 py-2 rounded-lg border text-sm font-medium ${
+            className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
               activeTab === 'open'
-                ? 'bg-gray-900 border-gray-900 text-white'
-                : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                ? 'bg-[#00D4AA] border-[#00D4AA] text-white shadow-sm'
+                : 'bg-(--surface) border-(--border) text-(--text-secondary) hover:text-(--text-primary)'
             }`}
           >
             Open ({open.length})
           </button>
           <button
             onClick={() => setActiveTab('received')}
-            className={`px-4 py-2 rounded-lg border text-sm font-medium ${
+            className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
               activeTab === 'received'
-                ? 'bg-gray-900 border-gray-900 text-white'
-                : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                ? 'bg-[#00D4AA] border-[#00D4AA] text-white shadow-sm'
+                : 'bg-(--surface) border-(--border) text-(--text-secondary) hover:text-(--text-primary)'
             }`}
           >
             Received ({received.length})
           </button>
           <button
             onClick={() => setActiveTab('sent')}
-            className={`px-4 py-2 rounded-lg border text-sm font-medium ${
+            className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
               activeTab === 'sent'
-                ? 'bg-gray-900 border-gray-900 text-white'
-                : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                ? 'bg-[#00D4AA] border-[#00D4AA] text-white shadow-sm'
+                : 'bg-(--surface) border-(--border) text-(--text-secondary) hover:text-(--text-primary)'
             }`}
           >
             Sent ({sent.length})
@@ -516,7 +520,7 @@ function RequestsPageContent() {
         </div>
 
         {loading ? (
-          <div className="text-gray-600 text-sm">Loading…</div>
+          <div className="text-(--text-secondary) text-sm">Loading…</div>
         ) : activeTab === 'open' ? (
           <Section items={open} type="open" />
         ) : activeTab === 'received' ? (

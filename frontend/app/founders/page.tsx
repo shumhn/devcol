@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { PublicKey } from '@solana/web3.js';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { useAnchorProgram, getUserPDA } from '../hooks/useAnchorProgram';
 import { rpcWithRetry } from '../utils/rpcRetry';
 import { getCache, setCache } from '../utils/cache';
@@ -26,6 +27,7 @@ interface FounderItem {
 }
 
 export default function FoundersPage() {
+  const { publicKey } = useWallet();
   const { program } = useAnchorProgram();
   const [founders, setFounders] = useState<FounderItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,7 +36,11 @@ export default function FoundersPage() {
 
   useEffect(() => {
     const load = async () => {
-      if (!program) return;
+      if (!program) {
+        // No wallet connected
+        setLoading(false);
+        return;
+      }
       if (loadedRef.current) return;
       loadedRef.current = true;
       setLoading(true);
@@ -135,6 +141,14 @@ export default function FoundersPage() {
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="h-48 rounded-2xl bg-white border border-gray-200 animate-pulse" />
           ))}
+        </div>
+      ) : !publicKey ? (
+        <div className="text-center py-16 bg-(--surface) border border-(--border) rounded-2xl shadow-sm">
+          <div className="text-6xl mb-4">🔌</div>
+          <h3 className="text-xl font-bold text-(--text-primary) mb-2">Connect Your Wallet</h3>
+          <p className="text-(--text-secondary) mb-6">
+            Connect your Phantom wallet to view founders
+          </p>
         </div>
       ) : filtered.length === 0 ? (
         <div className="rounded-2xl border border-gray-200 bg-white shadow-sm p-12 text-center">

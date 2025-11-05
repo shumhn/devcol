@@ -35,7 +35,11 @@ export default function Home() {
 
   useEffect(() => {
     const load = async () => {
-      if (!program) return;
+      if (!program) {
+        // No wallet connected - show mock data immediately
+        setLoading(false);
+        return;
+      }
       if (loadedRef.current) return; // prevent double-fetch in React strict/dev
       loadedRef.current = true;
       setLoading(true);

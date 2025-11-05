@@ -18,7 +18,7 @@ export default function DashboardPage() {
   // No wallet connected
   if (!publicKey) {
     return (
-      <div className={`min-h-screen bg-slate-900 ${premium.className}`}>
+      <div className={`min-h-screen bg-(--background) ${premium.className}`}>
         <div className="max-w-7xl mx-auto px-4 py-12">
           <EmptyState
             icon="🔌"
@@ -35,15 +35,15 @@ export default function DashboardPage() {
   // Loading state
   if (loading) {
     return (
-      <div className={`min-h-screen bg-slate-900 ${premium.className}`}>
+      <div className={`min-h-screen bg-(--background) ${premium.className}`}>
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="mb-8">
-            <div className="h-10 bg-gray-200 rounded-lg w-48 mb-2 animate-pulse"></div>
-            <div className="h-6 bg-gray-200 rounded-lg w-64 animate-pulse"></div>
+            <div className="h-10 bg-(--surface) rounded-lg w-48 mb-2 animate-pulse"></div>
+            <div className="h-6 bg-(--surface) rounded-lg w-64 animate-pulse"></div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="bg-white rounded-2xl h-32 animate-pulse"></div>
+              <div key={i} className="bg-(--surface) border border-(--border) rounded-2xl h-32 animate-pulse"></div>
             ))}
           </div>
         </div>
@@ -54,7 +54,7 @@ export default function DashboardPage() {
   // No profile yet
   if (!profile) {
     return (
-      <div className={`min-h-screen bg-slate-900 ${premium.className}`}>
+      <div className={`min-h-screen bg-(--background) ${premium.className}`}>
         <div className="max-w-7xl mx-auto px-4 py-12">
           <EmptyState
             icon="👤"
