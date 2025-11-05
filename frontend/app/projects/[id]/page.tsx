@@ -12,12 +12,12 @@ const display = Space_Grotesk({ subsets: ['latin'], weight: ['700'] });
 const premium = Sora({ subsets: ['latin'], weight: ['400', '600'] });
 
 const STATUS_BADGES: Record<string, { label: string; color: string }> = {
-  justStarted: { label: 'Just Started', color: 'bg-gray-100 text-gray-700 border-gray-300' },
-  inProgress: { label: 'In Progress', color: 'bg-[#00D4AA] text-gray-900 border-[#00D4AA]' },
-  nearlyComplete: { label: 'Nearly Complete', color: 'bg-yellow-100 text-yellow-800 border-yellow-300' },
-  completed: { label: 'Completed', color: 'bg-green-100 text-green-800 border-green-300' },
+  planning: { label: 'Planning', color: 'bg-gray-100 text-gray-700 border-gray-300' },
+  development: { label: 'Development', color: 'bg-[#00D4AA] text-gray-900 border-[#00D4AA]' },
+  testing: { label: 'Testing', color: 'bg-yellow-100 text-yellow-800 border-yellow-300' },
+  launched: { label: 'Launched', color: 'bg-green-100 text-green-800 border-green-300' },
   activeDev: { label: 'Active Development', color: 'bg-blue-100 text-blue-800 border-blue-300' },
-  onHold: { label: 'On Hold', color: 'bg-gray-100 text-gray-600 border-gray-300' },
+  paused: { label: 'Paused', color: 'bg-gray-100 text-gray-600 border-gray-300' },
 };
 
 const COLLAB_LEVEL: Record<string, string> = {
@@ -451,9 +451,9 @@ export default function ProjectDetailPage() {
   };
 
   const isOwner = publicKey && account.creator?.equals?.(publicKey);
-  const statusKey = Object.keys(account.status || account.projectStatus || {})[0] || 'inProgress';
+  const statusKey = Object.keys(account.status || account.projectStatus || {})[0] || 'development';
   const levelKey = Object.keys(account.collaborationLevel || account.collabLevel || {})[0] || 'intermediate';
-  const statusBadge = STATUS_BADGES[statusKey] || STATUS_BADGES.inProgress;
+  const statusBadge = STATUS_BADGES[statusKey] || STATUS_BADGES.development;
 
   const name = asString(account.name);
   const description = asString(account.description);

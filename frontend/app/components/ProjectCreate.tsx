@@ -17,12 +17,12 @@ const CollaborationLevel = {
 } as const;
 
 const ProjectStatus = {
-  JustStarted: { justStarted: {} },
-  InProgress: { inProgress: {} },
-  NearlyComplete: { nearlyComplete: {} },
-  Completed: { completed: {} },
+  Planning: { planning: {} },
+  Development: { development: {} },
+  Testing: { testing: {} },
+  Launched: { launched: {} },
   ActiveDev: { activeDev: {} },
-  OnHold: { onHold: {} },
+  Paused: { paused: {} },
 } as const;
 
 const Role = {
@@ -91,7 +91,7 @@ export default function ProjectCreate({ editMode = false, existingProject }: Pro
   const [collabIntent, setCollabIntent] = useState('');
 
   const [collabLevel, setCollabLevel] = useState<keyof typeof CollaborationLevel>('Intermediate');
-  const [status, setStatus] = useState<keyof typeof ProjectStatus>('InProgress');
+  const [status, setStatus] = useState<keyof typeof ProjectStatus>('Development');
 
   const [techStack, setTechStack] = useState<string[]>([]);
   const [needs, setNeeds] = useState<string[]>([]);
@@ -132,12 +132,12 @@ export default function ProjectCreate({ editMode = false, existingProject }: Pro
       // Status
       const statusKey = Object.keys(acc.status || acc.projectStatus || {})[0];
       if (statusKey) {
-        const mapped = statusKey === 'justStarted' ? 'JustStarted' :
-                      statusKey === 'inProgress' ? 'InProgress' :
-                      statusKey === 'nearlyComplete' ? 'NearlyComplete' :
-                      statusKey === 'completed' ? 'Completed' :
+        const mapped = statusKey === 'planning' ? 'Planning' :
+                      statusKey === 'development' ? 'Development' :
+                      statusKey === 'testing' ? 'Testing' :
+                      statusKey === 'launched' ? 'Launched' :
                       statusKey === 'activeDev' ? 'ActiveDev' :
-                      statusKey === 'onHold' ? 'OnHold' : 'InProgress';
+                      statusKey === 'paused' ? 'Paused' : 'Development';
         setStatus(mapped as keyof typeof ProjectStatus);
       }
       
@@ -619,12 +619,12 @@ export default function ProjectCreate({ editMode = false, existingProject }: Pro
         <label className="block text-gray-700 mb-2 font-semibold">Project Status *</label>
         <div className="flex flex-wrap gap-2">
           {([
-            { key: 'JustStarted', label: 'Just Started' },
-            { key: 'InProgress', label: 'In Progress' },
-            { key: 'NearlyComplete', label: 'Nearly Complete' },
-            { key: 'Completed', label: 'Completed' },
+            { key: 'Planning', label: 'Planning' },
+            { key: 'Development', label: 'Development' },
+            { key: 'Testing', label: 'Testing' },
+            { key: 'Launched', label: 'Launched' },
             { key: 'ActiveDev', label: 'Active Development' },
-            { key: 'OnHold', label: 'On Hold' },
+            { key: 'Paused', label: 'Paused' },
           ] as const).map((opt) => (
             <button
               key={opt.key}
@@ -763,12 +763,12 @@ export default function ProjectCreate({ editMode = false, existingProject }: Pro
         <label className="block text-gray-700 mb-2 font-semibold">Project Status *</label>
         <div className="grid grid-cols-2 gap-2">
           {([
-            { key: 'JustStarted', label: 'Just Started' },
-            { key: 'InProgress', label: 'In Progress' },
-            { key: 'NearlyComplete', label: 'Nearly Complete' },
-            { key: 'Completed', label: 'Completed' },
+            { key: 'Planning', label: 'Planning' },
+            { key: 'Development', label: 'Development' },
+            { key: 'Testing', label: 'Testing' },
+            { key: 'Launched', label: 'Launched' },
             { key: 'ActiveDev', label: 'Active Development' },
-            { key: 'OnHold', label: 'On Hold' },
+            { key: 'Paused', label: 'Paused' },
           ] as const).map((opt) => (
             <button
               key={opt.key}
@@ -791,7 +791,7 @@ export default function ProjectCreate({ editMode = false, existingProject }: Pro
             setNeeds([]);
             setCollabIntent('');
             setCollabLevel('Intermediate');
-            setStatus('InProgress');
+            setStatus('Development');
           }}
           className="flex-1 border border-gray-300 text-gray-700 hover:bg-gray-50 px-6 py-3 rounded-lg font-semibold"
         >
