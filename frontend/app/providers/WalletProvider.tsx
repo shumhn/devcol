@@ -48,8 +48,8 @@ export const WalletContextProvider: FC<WalletContextProviderProps> = ({ children
 
   return (
     <ConnectionProvider endpoint={endpoint} config={{ commitment }}>
-      {/* Disable autoConnect so users can properly disconnect/change wallet from the modal */}
-      <WalletProvider wallets={wallets} autoConnect={false} onError={onError}>
+      {/* Enable autoConnect to persist wallet connection across routes */}
+      <WalletProvider wallets={wallets} autoConnect={true} onError={onError}>
         <WalletModalProvider>
           {children}
         </WalletModalProvider>
