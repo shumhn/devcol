@@ -150,6 +150,8 @@ export default function Navbar() {
     { href: '/projects', label: 'Projects' },
     { href: '/founders', label: 'Founders' },
     { href: '/dashboard', label: 'Dashboard' },
+    { href: '/requests', label: 'Requests', showBadge: true as const },
+    { href: '/profile', label: 'My Profile' },
   ];
 
   const isActive = (path: string) => {
@@ -219,15 +221,39 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Mobile Navigation */}
+        {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-(--border)">
-            <div className="px-4">
-              <div className={`px-5 py-2 rounded-full border border-(--border) bg-(--surface)/80 backdrop-blur text-sm font-semibold tracking-tight text-center text-(--text-primary) ${premium.className}`}>
-                <span>Co‑build, catch bugs, crush launches.</span>
+          <>
+            {/* Overlay */}
+            <div
+              className="fixed inset-0 z-40 bg-black/40 md:hidden"
+              onClick={() => setMobileMenuOpen(false)}
+            />
+            {/* Drawer panel */}
+            <div className="fixed top-16 inset-x-0 z-50 md:hidden bg-(--surface) border-b border-(--border) shadow-lg">
+              <div className="px-4 py-3 space-y-1">
+                {navLinks.map((l) => (
+                  <Link
+                    key={l.href}
+                    href={l.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium ${
+                      isActive(l.href)
+                        ? 'bg-(--surface-hover) text-(--text-primary)'
+                        : 'text-(--text-secondary) hover:bg-(--surface-hover) hover:text-(--text-primary)'
+                    }`}
+                  >
+                    <span>{l.label}</span>
+                    {l.showBadge && publicKey && pendingCount > 0 && (
+                      <span className="h-5 px-1.5 flex items-center justify-center rounded-full bg-[#00D4AA] text-white text-[11px] font-semibold">
+                        {pendingCount > 99 ? '99+' : pendingCount}
+                      </span>
+                    )}
+                  </Link>
+                ))}
               </div>
             </div>
-          </div>
+          </>
         )}
       </div>
     </nav>

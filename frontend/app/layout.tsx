@@ -42,7 +42,7 @@ export default function RootLayout({
             {/* Lightweight notifications using filtered queries */}
             <NotificationProvider />
             <Sidebar />
-            <div className="ml-64">
+            <div className="lg:ml-64">
               <Navbar />
               <main className="min-h-screen">
                 {children}

@@ -134,7 +134,7 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className={`fixed left-0 top-0 h-screen w-64 bg-(--background) border-r border-(--border) overflow-y-auto ${premium.className}`}>
+    <aside className={`hidden lg:block fixed left-0 top-0 h-screen w-64 bg-(--background) border-r border-(--border) overflow-y-auto ${premium.className}`}>
       <div className="p-6">
         {/* Logo */}
         <Link href="/" className="block mb-8">
