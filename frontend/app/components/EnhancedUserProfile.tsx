@@ -36,6 +36,7 @@ export default function EnhancedUserProfile() {
   const [user, setUser] = useState<any>(null);
   const [metadata, setMetadata] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [needsMigration, setNeedsMigration] = useState(false);
@@ -158,6 +159,10 @@ export default function EnhancedUserProfile() {
       console.error('❌ Error fetching user:', error);
       setUser(null);
       setNeedsMigration(false);
+    } finally {
+      // Ensure loading is reset after fetch completes so the form button
+      // does not remain in a 'Saving...' state when entering edit mode.
+      setLoading(false);
     }
   };
 
@@ -237,22 +242,14 @@ export default function EnhancedUserProfile() {
 
   const handleMigration = async (contactInfo: string) => {
     if (!publicKey || !program) return;
-    
     if (!contactInfo.trim()) {
       alert('Contact info is required for migration');
       return;
     }
-
     try {
       setLoading(true);
-      
-      // Use the ACTUAL old account address, not the calculated PDA
       const { PublicKey } = await import('@solana/web3.js');
       const oldAccountAddress = new PublicKey('FWvQRwMZAWheL386Gcixjjr8YUjvx8BWTmaFCmWukxsP');
-      
-      console.log('🔄 Migrating user account...');
-      console.log('   Old account:', oldAccountAddress.toString());
-      
       await (program as any).methods
         .migrateUserAccount(contactInfo)
         .accounts({
@@ -261,25 +258,15 @@ export default function EnhancedUserProfile() {
           systemProgram: (await import('@solana/web3.js')).SystemProgram.programId,
         })
         .rpc();
-      
-      console.log('✅ Migration transaction confirmed. Waiting for account update...');
-      
-      // Wait a moment for the blockchain to propagate the update
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Force refetch with confirmed commitment to get the latest data
+      // brief wait then refetch
+      await new Promise((r) => setTimeout(r, 2000));
       try {
-        const updatedAccount = await (program as any).account.user.fetch(oldAccountAddress, 'confirmed');
-        console.log('📦 Refetched account after migration:', updatedAccount);
-        setUser(updatedAccount);
-        setAccountAddress(oldAccountAddress); // ✅ Store the account address for Edit/Delete
+        const updated = await (program as any).account.user.fetch(oldAccountAddress, 'confirmed');
+        setUser(updated);
+        setAccountAddress(oldAccountAddress);
         setNeedsMigration(false);
-        alert('✅ Account migrated successfully! Your profile now includes contact info.');
-      } catch (e) {
-        console.error('Failed to refetch after migration:', e);
-        // Fall back to regular fetch
-        await fetchUser();
-      }
+        alert('✅ Account migrated successfully!');
+      } catch {}
     } catch (error: any) {
       console.error('Migration error:', error);
       alert('Failed to migrate account: ' + (error.message || 'Unknown error'));
@@ -297,147 +284,89 @@ export default function EnhancedUserProfile() {
       alert('⚠️ Please connect your wallet first');
       return;
     }
-
-    setLoading(true);
+    setSaving(true);
     try {
-      console.log('🚀 Starting profile save...');
-      console.log('📝 Creating/updating profile with publicKey:', publicKey.toString());
-      
+      // profile picture upload (optional, 30s timeout)
       let profilePicHash = '';
       if (profilePicFile) {
-        console.log('📸 Uploading profile picture to IPFS...');
         try {
           profilePicHash = await Promise.race([
             uploadImageToIPFS(profilePicFile),
-            new Promise<string>((_, reject) => 
-              setTimeout(() => reject(new Error('Image upload timeout after 30s')), 30000)
-            )
+            new Promise<string>((_, reject) => setTimeout(() => reject(new Error('Image upload timeout after 30s')), 30000)),
           ]);
-          console.log('✅ Profile picture uploaded:', profilePicHash);
-        } catch (err: any) {
-          console.error('❌ Profile picture upload failed:', err);
+        } catch {
           alert('⚠️ Profile picture upload failed. Continuing without image...');
-          profilePicHash = '';
         }
       }
-
-      // Upload metadata to IPFS
-      console.log('☁️ Uploading metadata to IPFS...');
-      const metadataObj = {
+      // metadata upload (optional, 30s timeout)
+      const meta = {
         display_name: formData.displayName,
         tech_stack: techStacks,
         profile_picture: profilePicHash,
-        social_links: {
-          twitter: formData.twitterUrl,
-        },
+        social_links: { twitter: formData.twitterUrl },
         country: formData.country,
       };
-      
       let metadataHash = '';
       try {
         metadataHash = await Promise.race([
-          uploadMetadataToIPFS(metadataObj),
-          new Promise<string>((_, reject) => 
-            setTimeout(() => reject(new Error('Metadata upload timeout after 30s')), 30000)
-          )
+          uploadMetadataToIPFS(meta),
+          new Promise<string>((_, reject) => setTimeout(() => reject(new Error('Metadata upload timeout after 30s')), 30000)),
         ]);
-        console.log('✅ Metadata uploaded:', metadataHash);
-      } catch (err: any) {
-        console.error('❌ Metadata upload failed:', err);
-        alert('⚠️ Metadata upload failed. Using empty hash...');
-        metadataHash = '';
+      } catch {
+        // proceed without metadata
       }
-
       const [userPDA] = getUserPDA(publicKey);
-      console.log('🔑 User PDA:', userPDA.toString());
-      console.log('👤 PublicKey:', publicKey.toString());
-
-      // Before creating, check if any account exists at this PDA and delete it
-      if (!isEditing) {
-        try {
-          const existingAccount = await (program as any).account.user.fetch(userPDA);
-          console.log('⚠️ Account already exists at this PDA - deleting it first');
-          
-          await (program as any).methods
-            .deleteUser()
-            .accounts({
-              user: userPDA,
-              signer: publicKey,
-              wallet: publicKey,
-            })
-            .rpc();
-          
-          console.log('✅ Existing account deleted');
-          // Wait for deletion to propagate
-          await new Promise(resolve => setTimeout(resolve, 1500));
-        } catch (error: any) {
-          // If account doesn't exist or can't be fetched, that's fine - we'll create a new one
-          console.log('No existing account at this PDA (or failed to fetch)');
-        }
-      }
-
+      // if editing, update existing account
       if (isEditing && user) {
-        // Use the stored account address (not calculated PDA)
         if (!accountAddress) {
           alert('Error: Account address not found. Please refresh the page.');
-          setLoading(false);
           return;
         }
-        console.log('✏️ Updating account at:', accountAddress.toString());
-        await (program as any).methods
-          // IDL: update_user(display_name?, role?, location?, bio?, github_link?, ipfs_metadata_hash?, contact_info?, open_to_collab?, profile_visibility?)
-          .updateUser(
-            formData.displayName ? formData.displayName : null, // display_name
-            formData.role ? formData.role : null, // role
-            formData.country ? formData.country : null, // location
-            formData.bio ? formData.bio : null, // bio
-            formData.githubUrl ? formData.githubUrl : null, // github_link
-            metadataHash ? metadataHash : null, // ipfs_metadata_hash
-            formData.contactInfo ? formData.contactInfo : null, // contact_info
-            null, // open_to_collab
-            null // profile_visibility
-          )
-          .accounts({ 
-            user: accountAddress,
-            signer: publicKey,
-            wallet: publicKey,
-          })
-          .rpc();
-        alert('Profile updated successfully!');
+        await Promise.race([
+          (program as any).methods
+            .updateUser(
+              formData.displayName ? formData.displayName : null,
+              formData.role ? formData.role : null,
+              formData.country ? formData.country : null,
+              formData.bio ? formData.bio : null,
+              formData.githubUrl ? formData.githubUrl : null,
+              metadataHash ? metadataHash : null,
+              formData.contactInfo ? formData.contactInfo : null,
+              null,
+              null
+            )
+            .accounts({ user: accountAddress, signer: publicKey, wallet: publicKey })
+            .rpc(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Transaction timeout after 60s')), 60000)),
+        ]);
+        alert('✅ Profile updated successfully!');
       } else {
-        console.log('🆕 Creating new profile...');
-        console.log('  - Username:', formData.username);
-        console.log('  - User PDA:', userPDA.toString());
-        console.log('  - Authority:', publicKey.toString());
-        
-        if (!publicKey) {
-          throw new Error('PublicKey is null - wallet may have disconnected');
-        }
-        
-        const { SystemProgram } = await import('@solana/web3.js');
-        
-        await (program as any).methods
-          .createUser(
-            formData.username,
-            formData.displayName || formData.username, // display_name
-            formData.role,
-            formData.country || '', // location
-            formData.bio,
-            formData.githubUrl,
-            metadataHash,
-            formData.contactInfo || '' // contact_info (optional, defaults to empty)
-          )
-          .accounts({ 
-            user: userPDA, 
-            signer: publicKey,  // Changed from 'authority' to 'signer'
-            systemProgram: SystemProgram.programId 
-          })
-          .rpc();
-        
-        console.log('✅ Profile created successfully!');
-        alert('Profile created successfully!');
+        // optional: attempt delete existing PDA if present
+        try {
+          const existing = await (program as any).account.user.fetch(userPDA);
+          if (existing) {
+            await (program as any).methods.deleteUser().accounts({ user: userPDA, signer: publicKey, wallet: publicKey }).rpc();
+            await new Promise((r) => setTimeout(r, 1200));
+          }
+        } catch {}
+        await Promise.race([
+          (program as any).methods
+            .createUser(
+              formData.username,
+              formData.displayName || formData.username,
+              formData.role,
+              formData.country || '',
+              formData.bio,
+              formData.githubUrl,
+              metadataHash,
+              formData.contactInfo || ''
+            )
+            .accounts({ user: userPDA, signer: publicKey, systemProgram: SystemProgram.programId })
+            .rpc(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Transaction timeout after 60s')), 60000)),
+        ]);
+        alert('✅ Profile created successfully!');
       }
-
       await fetchUser();
       setShowCreateForm(false);
       setIsEditing(false);
@@ -448,22 +377,9 @@ export default function EnhancedUserProfile() {
       setProfilePicPreview('');
     } catch (error: any) {
       console.error('❌ Profile save error:', error);
-      console.error('Error details:', {
-        message: error.message,
-        logs: error.logs,
-        code: error.code
-      });
-      
-      let errorMsg = 'Failed to save profile';
-      if (error.message?.includes('Account `user` not provided')) {
-        errorMsg = 'Wallet connection issue. Please disconnect and reconnect your wallet, then try again.';
-      } else if (error.message) {
-        errorMsg = error.message;
-      }
-      
-      alert(`❌ ${errorMsg}`);
+      alert('❌ ' + (error?.message || 'Failed to save profile'));
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
@@ -924,10 +840,10 @@ export default function EnhancedUserProfile() {
           )}
           <button
             onClick={handleSubmit}
-            disabled={loading}
+            disabled={saving}
             className="flex-1 bg-[#00D4AA] hover:bg-[#00B894] text-gray-900 px-6 py-3 rounded-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Saving...' : isEditing ? 'Update Profile' : 'Create Profile'}
+            {saving ? 'Saving...' : isEditing ? 'Update Profile' : 'Create Profile'}
           </button>
         </div>
       </div>
