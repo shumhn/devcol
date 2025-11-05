@@ -40,6 +40,7 @@ export const cidToUrl = (cid?: string) => (cid ? `${IPFS_GATEWAY}${cid}` : '');
  */
 export async function uploadImageToIPFS(file: File): Promise<string> {
   // Try production route first (Pinata via serverless), fallback to local mock
+  console.log('🚀 Uploading image to Pinata IPFS...', { name: file.name, size: file.size });
   try {
     const form = new FormData();
     form.append('file', file);
@@ -47,6 +48,10 @@ export async function uploadImageToIPFS(file: File): Promise<string> {
     if (res.ok) {
       const data = await res.json();
       const cid: string = data.cid;
+      console.log('✅ Successfully uploaded to Pinata IPFS!', { 
+        cid, 
+        url: `https://gateway.pinata.cloud/ipfs/${cid}` 
+      });
       // Optional: cache a local preview for instant loads
       try {
         const reader = new FileReader();
@@ -58,10 +63,16 @@ export async function uploadImageToIPFS(file: File): Promise<string> {
         localStorage.setItem(`ipfs_image_${cid}`, asBase64);
       } catch {}
       return cid;
+    } else {
+      const error = await res.json();
+      console.error('❌ Pinata upload failed:', error);
     }
-  } catch {}
+  } catch (err) {
+    console.error('❌ IPFS upload error:', err);
+  }
 
-  // Fallback: local mock
+  // Fallback: local mock (only used if Pinata fails)
+  console.warn('⚠️ Falling back to local mock storage (Pinata unavailable)');
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onloadend = async () => {
