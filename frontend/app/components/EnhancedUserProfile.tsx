@@ -103,57 +103,39 @@ export default function EnhancedUserProfile() {
     console.log('🔍 Fetching user for wallet:', publicKey.toString());
     
     try {
-      // First try the calculated PDA
+      // Try to fetch from the wallet's PDA
       const [userPDA] = getUserPDA(publicKey);
       console.log('📍 Calculated PDA:', userPDA.toString());
       
-      let userAccount = null;
-      let accountAddress = userPDA;
-      
       try {
         console.log('🔎 Trying to fetch from calculated PDA...');
-        userAccount = await (program as any).account.user.fetch(userPDA);
+        const userAccount = await (program as any).account.user.fetch(userPDA);
         console.log('✅ Found account at calculated PDA');
-        accountAddress = userPDA; // Store PDA address
-      } catch (e) {
-        // If not found at calculated PDA, try the old hardcoded address
-        console.log('❌ Not found at calculated PDA, checking old address...');
-        const { PublicKey } = await import('@solana/web3.js');
-        const oldAddress = new PublicKey('FWvQRwMZAWheL386Gcixjjr8YUjvx8BWTmaFCmWukxsP');
-        console.log('📍 Old address:', oldAddress.toString());
         
-        try {
-          console.log('🔎 Trying to fetch from old address...');
-          userAccount = await (program as any).account.user.fetch(oldAddress);
-          accountAddress = oldAddress; // Store old address
-          console.log('✅ Found account at old address!');
-          console.log('📦 Account data:', userAccount);
-        } catch (e2) {
-          console.log('❌ User not found at either address');
-          console.log('Error:', e2);
-          setUser(null);
-          setAccountAddress(null);
-          setNeedsMigration(false);
-          return;
+        // Store the account address in state
+        setAccountAddress(userPDA);
+        console.log('💾 Stored account address:', userPDA.toString());
+      
+        // Load user profile - contact info is optional
+        console.log('✅ User account loaded:', {
+          username: userAccount.username,
+          hasContactInfo: !!(userAccount.contactInfo && userAccount.contactInfo.trim())
+        });
+        
+        setUser(userAccount);
+        setNeedsMigration(false);
+        
+        if (userAccount.ipfsMetadataHash) {
+          const ipfsData = await fetchMetadataFromIPFS(userAccount.ipfsMetadataHash);
+          setMetadata(ipfsData);
         }
-      }
-      
-      // Store the actual account address in state
-      setAccountAddress(accountAddress);
-      console.log('💾 Stored account address:', accountAddress.toString());
-      
-      // Load user profile - contact info is optional
-      console.log('✅ User account loaded:', {
-        username: userAccount.username,
-        hasContactInfo: !!(userAccount.contactInfo && userAccount.contactInfo.trim())
-      });
-      
-      setUser(userAccount);
-      setNeedsMigration(false); // No forced migration
-      
-      if (userAccount.ipfsMetadataHash) {
-        const ipfsData = await fetchMetadataFromIPFS(userAccount.ipfsMetadataHash);
-        setMetadata(ipfsData);
+      } catch (e) {
+        // User profile doesn't exist for this wallet - show create form
+        console.log('❌ User profile not found for this wallet');
+        console.log('Error:', e);
+        setUser(null);
+        setAccountAddress(null);
+        setNeedsMigration(false);
       }
     } catch (error) {
       console.error('❌ Error fetching user:', error);
