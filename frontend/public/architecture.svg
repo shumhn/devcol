@@ -1,0 +1,156 @@
+<svg width="1400" height="900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .bg { fill: #0a0e1a; }
+      .panel { fill: #0f172a; stroke: #1e293b; stroke-width: 2; }
+      .panel-light { fill: #1e293b; stroke: #334155; stroke-width: 1.5; }
+      .title { fill: #f1f5f9; font-family: Arial, sans-serif; font-size: 24px; font-weight: bold; }
+      .heading { fill: #e2e8f0; font-family: Arial, sans-serif; font-size: 18px; font-weight: bold; }
+      .label { fill: #cbd5e1; font-family: Arial, sans-serif; font-size: 14px; font-weight: 600; }
+      .text { fill: #94a3b8; font-family: Arial, sans-serif; font-size: 13px; }
+      .small { fill: #64748b; font-family: Arial, sans-serif; font-size: 12px; }
+      .code { fill: #86efac; font-family: Courier, monospace; font-size: 11px; font-weight: 600; }
+      .accent { fill: #00d4aa; }
+      .accent-bg { fill: #064e3b; stroke: #00d4aa; stroke-width: 2; }
+      .arrow { stroke: #475569; stroke-width: 2; fill: none; }
+      .arrow-accent { stroke: #00d4aa; stroke-width: 3; fill: none; }
+      .arrow-blue { stroke: #38bdf8; stroke-width: 3; fill: none; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1400" height="900" class="bg"/>
+
+  <!-- Title -->
+  <text x="40" y="45" class="title">c0Foundr — System Architecture</text>
+  <text x="40" y="70" class="text">Next.js 16 + Solana (Anchor) + IPFS/Pinata • Devnet Deployment</text>
+
+  <!-- Client Layer -->
+  <g id="client">
+    <rect x="40" y="100" width="500" height="580" rx="12" class="panel"/>
+    <text x="60" y="135" class="heading">Client (Next.js App)</text>
+    
+    <!-- UI -->
+    <rect x="60" y="160" width="460" height="80" rx="8" class="panel-light"/>
+    <text x="80" y="185" class="label">React UI Components</text>
+    <text x="80" y="205" class="text">Navbar • Sidebar (mobile menu)</text>
+    <text x="80" y="225" class="text">Pages: Home, Projects, Founders, Requests, Profile</text>
+    
+    <!-- Wallet -->
+    <rect x="60" y="255" width="460" height="90" rx="8" class="panel-light"/>
+    <text x="80" y="280" class="label">Wallet + Anchor Client</text>
+    <text x="80" y="300" class="text">@solana/wallet-adapter (Phantom)</text>
+    <text x="80" y="320" class="text">Anchor Program Client</text>
+    <text x="80" y="335" class="code">PROGRAM_ID: F1z678h8UgZin1Dmt3iEAiR9vF7KWytkaoeGd2hgbBRn</text>
+    
+    <!-- Data -->
+    <rect x="60" y="360" width="460" height="110" rx="8" class="panel-light"/>
+    <text x="80" y="385" class="label">Data Hooks &amp; Caching</text>
+    <text x="80" y="405" class="text">useDashboardData • useAnchorProgram</text>
+    <text x="80" y="425" class="text">• Profiles/Projects/Requests via RPC</text>
+    <text x="80" y="445" class="text">• Pending counters + notifications</text>
+    <text x="80" y="465" class="text">• Local cache for performance</text>
+    
+    <!-- Media -->
+    <rect x="60" y="485" width="460" height="90" rx="8" class="panel-light"/>
+    <text x="80" y="510" class="label">Media &amp; Metadata</text>
+    <text x="80" y="530" class="text">uploadImageToIPFS • uploadMetadataToIPFS</text>
+    <text x="80" y="550" class="text">fetchMetadataFromIPFS</text>
+    <text x="80" y="570" class="code">Gateway: https://gateway.pinata.cloud/ipfs/</text>
+    
+    <!-- Env -->
+    <rect x="60" y="590" width="460" height="75" rx="8" class="panel-light"/>
+    <text x="80" y="615" class="label">Client Environment</text>
+    <text x="80" y="635" class="code">NEXT_PUBLIC_SOLANA_RPC_URL_DEVNET</text>
+    <text x="80" y="655" class="code">NEXT_PUBLIC_SOLANA_CLUSTER=devnet</text>
+  </g>
+
+  <!-- API Routes -->
+  <g id="api">
+    <rect x="580" y="100" width="300" height="240" rx="12" class="panel"/>
+    <text x="600" y="135" class="heading">Next.js API Routes</text>
+    
+    <rect x="600" y="160" width="260" height="65" rx="8" class="panel-light"/>
+    <text x="620" y="185" class="label">/api/ipfs/upload</text>
+    <text x="620" y="205" class="text">Pins images to Pinata</text>
+    <text x="620" y="220" class="small">(multipart/form-data)</text>
+    
+    <rect x="600" y="240" width="260" height="65" rx="8" class="panel-light"/>
+    <text x="620" y="265" class="label">/api/ipfs/json</text>
+    <text x="620" y="285" class="text">Pins JSON metadata to Pinata</text>
+    
+    <rect x="600" y="315" width="260" height="20" rx="6" class="accent-bg"/>
+    <text x="620" y="330" class="code">Server Env: PINATA_JWT</text>
+  </g>
+
+  <!-- Solana -->
+  <g id="solana">
+    <rect x="920" y="100" width="440" height="350" rx="12" class="panel"/>
+    <text x="940" y="135" class="heading">Solana Devnet</text>
+    
+    <rect x="940" y="160" width="400" height="70" rx="8" class="panel-light"/>
+    <text x="960" y="185" class="label">RPC Provider</text>
+    <text x="960" y="205" class="text">Helius (preferred) or clusterApiUrl('devnet')</text>
+    <text x="960" y="225" class="code">devnet.helius-rpc.com</text>
+    
+    <rect x="940" y="245" width="400" height="190" rx="8" class="panel-light"/>
+    <text x="960" y="270" class="label">Anchor Program</text>
+    <text x="960" y="290" class="code">F1z678h8UgZin1Dmt3iEAiR9vF7KWytkaoeGd2hgbBRn</text>
+    <text x="960" y="315" class="text">• User PDA: seeds ["user", wallet]</text>
+    <text x="960" y="335" class="text">• Project PDA: seeds ["project", creator, name]</text>
+    <text x="960" y="355" class="text">• CollabRequest PDA: seeds ["collab_request", ...]</text>
+    <text x="960" y="380" class="small">Instructions:</text>
+    <text x="960" y="400" class="small">create/update user &amp; project</text>
+    <text x="960" y="420" class="small">send/accept/reject collaboration request</text>
+  </g>
+
+  <!-- IPFS -->
+  <g id="ipfs">
+    <rect x="920" y="480" width="440" height="200" rx="12" class="panel"/>
+    <text x="940" y="515" class="heading">IPFS via Pinata</text>
+    
+    <rect x="940" y="540" width="400" height="60" rx="8" class="panel-light"/>
+    <text x="960" y="565" class="label">Pinning Service</text>
+    <text x="960" y="585" class="text">Authenticated with PINATA_JWT</text>
+    
+    <rect x="940" y="615" width="400" height="50" rx="8" class="panel-light"/>
+    <text x="960" y="640" class="label">Public Gateway</text>
+    <text x="960" y="660" class="code">gateway.pinata.cloud/ipfs/&lt;cid&gt;</text>
+  </g>
+
+  <!-- Arrows -->
+  <!-- Client to RPC -->
+  <path d="M 540 280 L 920 230" class="arrow-blue"/>
+  <polygon points="920,230 910,225 910,235" fill="#38bdf8"/>
+  <text x="680" y="245" class="small" fill="#7dd3fc">Anchor client → RPC</text>
+
+  <!-- Client to API -->
+  <path d="M 540 530 L 580 530" class="arrow"/>
+  <polygon points="580,530 570,525 570,535" fill="#475569"/>
+  <text x="545" y="520" class="small">Upload image/metadata</text>
+
+  <!-- API to Pinata -->
+  <path d="M 760 300 L 920 580" class="arrow-accent"/>
+  <polygon points="920,580 910,575 912,587" fill="#00d4aa"/>
+  <text x="800" y="440" class="small" fill="#6ee7b7">Server → Pinata (JWT)</text>
+
+  <!-- Client to Gateway -->
+  <path d="M 540 620 L 920 620" class="arrow"/>
+  <polygon points="540,620 550,615 550,625" fill="#475569"/>
+  <text x="660" y="610" class="small">Fetch via gateway</text>
+
+  <!-- Legend -->
+  <g id="legend">
+    <rect x="40" y="720" width="1320" height="150" rx="12" class="panel"/>
+    <text x="60" y="755" class="heading">Key Points</text>
+    
+    <circle cx="70" cy="785" r="6" fill="#00d4aa"/>
+    <text x="90" y="790" class="text">Green: Authenticated server-to-server (PINATA_JWT)</text>
+    
+    <circle cx="70" cy="815" r="6" fill="#38bdf8"/>
+    <text x="90" y="820" class="text">Blue: Program read/write via RPC (wallet signs transactions)</text>
+    
+    <circle cx="70" cy="845" r="6" fill="#64748b"/>
+    <text x="90" y="850" class="text">Gray: Public data fetching (IPFS gateway)</text>
+  </g>
+</svg>
