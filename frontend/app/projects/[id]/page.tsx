@@ -478,18 +478,26 @@ export default function ProjectDetailPage() {
           <div className="flex items-start gap-4">
             {/* Logo */}
             <div className="w-16 h-16 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
-              {logoHash ? (
-                <img
-                  src={typeof window !== 'undefined' ? (localStorage.getItem(`ipfs_image_${logoHash}`) || '') : ''}
-                  alt={name}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
-                />
-              ) : (
-                <span className="text-sm text-gray-400">No logo</span>
-              )}
+              {(() => {
+                if (!logoHash) {
+                  return <span className="text-sm text-gray-400">No logo</span>;
+                }
+                const imgSrc = typeof window !== 'undefined' 
+                  ? localStorage.getItem(`ipfs_image_${logoHash}`) 
+                  : null;
+                return imgSrc ? (
+                  <img
+                    src={imgSrc}
+                    alt={name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <span className="text-sm text-gray-400">No logo</span>
+                );
+              })()}
             </div>
 
             {/* Title and Meta */}

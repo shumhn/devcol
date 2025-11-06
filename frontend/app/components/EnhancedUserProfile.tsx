@@ -441,15 +441,23 @@ export default function EnhancedUserProfile() {
           {/* Profile Picture */}
           <div className="absolute -top-16 left-4">
             <div className="w-32 h-32 rounded-full border-4 border-(--surface) bg-(--surface-hover) flex items-center justify-center overflow-hidden">
-              {metadata?.profile_picture ? (
-                <img 
-                  src={typeof window !== 'undefined' ? localStorage.getItem(`ipfs_image_${metadata.profile_picture}`) || '' : ''} 
-                  alt="Profile" 
-                  className="w-full h-full object-cover" 
-                />
-              ) : (
-                <span className="text-5xl text-(--text-muted)">?</span>
-              )}
+              {(() => {
+                if (!metadata?.profile_picture) {
+                  return <span className="text-5xl text-(--text-muted)">?</span>;
+                }
+                const imgSrc = typeof window !== 'undefined' 
+                  ? localStorage.getItem(`ipfs_image_${metadata.profile_picture}`) 
+                  : null;
+                return imgSrc ? (
+                  <img 
+                    src={imgSrc} 
+                    alt="Profile" 
+                    className="w-full h-full object-cover" 
+                  />
+                ) : (
+                  <span className="text-5xl text-(--text-muted)">?</span>
+                );
+              })()}
             </div>
           </div>
 

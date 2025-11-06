@@ -165,15 +165,23 @@ export default function FoundersPage() {
               <div className="flex items-start gap-3 mb-3">
                 {/* Profile Picture */}
                 <div className="w-12 h-12 rounded-full bg-(--surface-hover) flex items-center justify-center shrink-0 overflow-hidden">
-                  {f.profilePicture && typeof window !== 'undefined' && localStorage.getItem(`ipfs_image_${f.profilePicture}`) ? (
-                    <img 
-                      src={localStorage.getItem(`ipfs_image_${f.profilePicture}`) || ''} 
-                      alt={f.displayName || f.username}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-xl text-(--text-muted)">?</span>
-                  )}
+                  {(() => {
+                    if (!f.profilePicture) {
+                      return <span className="text-xl text-(--text-muted)">?</span>;
+                    }
+                    const imgSrc = typeof window !== 'undefined' 
+                      ? localStorage.getItem(`ipfs_image_${f.profilePicture}`) 
+                      : null;
+                    return imgSrc ? (
+                      <img 
+                        src={imgSrc} 
+                        alt={f.displayName || f.username}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-xl text-(--text-muted)">?</span>
+                    );
+                  })()}
                 </div>
                 
                 <div className="flex-1 min-w-0">
