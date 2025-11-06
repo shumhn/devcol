@@ -391,16 +391,10 @@ export default function ProjectCreate({ editMode = false, existingProject }: Pro
         if (roleRequirements.length > 0) {
           try {
             const roleReqs = roleRequirements.filter(r => r.needed > 0).map(r => {
-              // Map lowercase role to camelCase enum variant
-              const roleVariant = r.role === 'frontend' ? 'frontend' :
-                                  r.role === 'backend' ? 'backend' :
-                                  r.role === 'fullstack' ? 'fullstack' :
-                                  r.role === 'devops' ? 'devOps' :
-                                  r.role === 'qa' ? 'qa' :
-                                  r.role === 'designer' ? 'designer' :
-                                  'others';
+              // Map lowercase role to capitalized enum variant
+              const roleVariant = r.role.charAt(0).toUpperCase() + r.role.slice(1);
               return {
-                role: { [roleVariant]: {} },
+                role: roleVariant,
                 needed: r.needed,
                 accepted: 0,
                 label: r.role === 'others' ? (r.label ?? null) : null,
@@ -441,7 +435,7 @@ export default function ProjectCreate({ editMode = false, existingProject }: Pro
             safeIntent,
             CollaborationLevel[collabLevel],
             ProjectStatus[status],
-            safeRoles.filter(r => r.needed > 0).map(r => ({ role: { [r.role]: {} }, needed: r.needed, accepted: 0, label: r.role === 'others' && r.label ? r.label : null }))
+            safeRoles.filter(r => r.needed > 0).map(r => ({ role: r.role.charAt(0).toUpperCase() + r.role.slice(1), needed: r.needed, accepted: 0, label: r.role === 'others' && r.label ? r.label : null }))
           )
           .accounts({
             project: projectPDA,
