@@ -53,6 +53,11 @@ export async function uploadImageToIPFS(file: File): Promise<string> {
     if (res.ok) {
       const data = await res.json();
       const cid: string = data.cid;
+      // Validate CID is not empty
+      if (!cid || typeof cid !== 'string' || cid.trim().length === 0) {
+        console.error('❌ Invalid CID received from Pinata:', cid);
+        throw new Error('Invalid CID received');
+      }
       devLog('✅ Successfully uploaded to Pinata IPFS!', { 
         cid, 
         url: `https://gateway.pinata.cloud/ipfs/${cid}` 
@@ -78,22 +83,31 @@ export async function uploadImageToIPFS(file: File): Promise<string> {
 
   // Fallback: local mock (only used if Pinata fails)
   devWarn('⚠️ Falling back to local mock storage (Pinata unavailable)');
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = async () => {
-      const base64String = reader.result as string;
-      const encoder = new TextEncoder();
-      const data = encoder.encode(base64String.slice(0, 100) + file.name + Date.now());
-      const hashBuffer = await crypto.subtle.digest('SHA-256', data as BufferSource);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 44);
-      const mockCID = `Qm${hashHex}`;
-      localStorage.setItem(`ipfs_image_${mockCID}`, base64String);
-      resolve(mockCID);
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
+  try {
+    return await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        try {
+          const base64String = reader.result as string;
+          const encoder = new TextEncoder();
+          const data = encoder.encode(base64String.slice(0, 100) + file.name + Date.now());
+          const hashBuffer = await crypto.subtle.digest('SHA-256', data as BufferSource);
+          const hashArray = Array.from(new Uint8Array(hashBuffer));
+          const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 44);
+          const mockCID = `Qm${hashHex}`;
+          localStorage.setItem(`ipfs_image_${mockCID}`, base64String);
+          resolve(mockCID);
+        } catch (err) {
+          reject(err);
+        }
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  } catch (err) {
+    console.error('❌ Fallback mock upload also failed:', err);
+    throw new Error('Failed to upload image to IPFS');
+  }
 }
 
 /**

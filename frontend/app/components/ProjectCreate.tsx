@@ -347,9 +347,19 @@ export default function ProjectCreate({ editMode = false, existingProject }: Pro
       // Upload logo to IPFS if provided
       let logoHash = null;
       if (logoFile) {
-        console.log('Uploading logo to IPFS...');
-        const uploadedHash = await uploadImageToIPFS(logoFile);
-        logoHash = uploadedHash || null;
+        try {
+          console.log('Uploading logo to IPFS...');
+          const uploadedHash = await uploadImageToIPFS(logoFile);
+          // Validate the returned hash
+          if (uploadedHash && typeof uploadedHash === 'string' && uploadedHash.trim().length > 0) {
+            logoHash = uploadedHash;
+          } else {
+            console.warn('Upload returned invalid hash, proceeding without logo');
+          }
+        } catch (uploadErr) {
+          console.error('Failed to upload logo:', uploadErr);
+          alert('Failed to upload logo. Creating project without logo.');
+        }
       }
 
       let projectPDA: PublicKey;
