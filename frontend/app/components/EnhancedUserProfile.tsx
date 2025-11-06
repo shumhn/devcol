@@ -390,7 +390,7 @@ export default function EnhancedUserProfile() {
         {needsMigration && (
           <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 mb-6 rounded-lg">
             <div className="flex items-start">
-              <div className="flex-shrink-0">
+              <div className="shrink-0">
                 <svg className="h-6 w-6 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
@@ -435,7 +435,7 @@ export default function EnhancedUserProfile() {
         
       <div className="bg-(--surface) border border-(--border) rounded-2xl shadow-sm overflow-hidden">
         {/* Header */}
-        <div className="h-24 bg-gradient-to-r from-[#00D4AA] to-[#00B894]"></div>
+        <div className="h-24 bg-linear-to-r from-[#00D4AA] to-[#00B894]"></div>
 
         <div className="relative px-4 pb-2">
           {/* Profile Picture */}

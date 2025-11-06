@@ -20,22 +20,22 @@ const CollaborationLevel = {
 } as const;
 
 const ProjectStatus = {
-  Planning: { planning: {} },
-  Development: { development: {} },
-  Testing: { testing: {} },
-  Launched: { launched: {} },
+  JustStarted: { justStarted: {} },
+  InProgress: { inProgress: {} },
+  NearlyComplete: { nearlyComplete: {} },
+  Completed: { completed: {} },
   ActiveDev: { activeDev: {} },
-  Paused: { paused: {} },
+  OnHold: { onHold: {} },
 } as const;
 
 const Role = {
-  Frontend: { Frontend: {} },
-  Backend: { Backend: {} },
-  Fullstack: { Fullstack: {} },
-  DevOps: { DevOps: {} },
-  QA: { QA: {} },
-  Designer: { Designer: {} },
-  Others: { Others: {} },
+  Frontend: { frontend: {} },
+  Backend: { backend: {} },
+  Fullstack: { fullstack: {} },
+  DevOps: { devOps: {} },
+  QA: { qa: {} },
+  Designer: { designer: {} },
+  Others: { others: {} },
 } as const;
 
 type Tag = {
@@ -94,7 +94,7 @@ export default function ProjectCreate({ editMode = false, existingProject }: Pro
   const [collabIntent, setCollabIntent] = useState('');
 
   const [collabLevel, setCollabLevel] = useState<keyof typeof CollaborationLevel>('Intermediate');
-  const [status, setStatus] = useState<keyof typeof ProjectStatus>('Development');
+  const [status, setStatus] = useState<keyof typeof ProjectStatus>('InProgress');
 
   const [techStack, setTechStack] = useState<string[]>([]);
   const [needs, setNeeds] = useState<string[]>([]);
@@ -132,15 +132,14 @@ export default function ProjectCreate({ editMode = false, existingProject }: Pro
         setCollabLevel(mapped as keyof typeof CollaborationLevel);
       }
       
-      // Status
       const statusKey = Object.keys(acc.status || acc.projectStatus || {})[0];
       if (statusKey) {
-        const mapped = statusKey === 'planning' ? 'Planning' :
-                      statusKey === 'development' ? 'Development' :
-                      statusKey === 'testing' ? 'Testing' :
-                      statusKey === 'launched' ? 'Launched' :
+        const mapped = statusKey === 'justStarted' ? 'JustStarted' :
+                      statusKey === 'inProgress' ? 'InProgress' :
+                      statusKey === 'nearlyComplete' ? 'NearlyComplete' :
+                      statusKey === 'completed' ? 'Completed' :
                       statusKey === 'activeDev' ? 'ActiveDev' :
-                      statusKey === 'paused' ? 'Paused' : 'Development';
+                      statusKey === 'onHold' ? 'OnHold' : 'InProgress';
         setStatus(mapped as keyof typeof ProjectStatus);
       }
       
@@ -200,7 +199,7 @@ export default function ProjectCreate({ editMode = false, existingProject }: Pro
   }, [name, description, githubUrl, logoPreview, techStack, needs, collabIntent, roleRequirements]);
 
   const MAX_ACCOUNT_BYTES = 4096;
-  const RECOMMENDED_MAX = 2800; // much more conservative
+  const RECOMMENDED_MAX = 1500; // much more conservative
 
   const autoCompact = () => {
     const trimStr = (s: string) => s.trim();
@@ -234,10 +233,10 @@ export default function ProjectCreate({ editMode = false, existingProject }: Pro
   useEffect(() => {
     const e: Record<string, string> = {};
     if (name.length > 32) e.name = 'Max 32 characters (Solana PDA seed limit)';
-    if (description.length > 1000) e.description = 'Max 1000 characters';
+    if (description.length > 500) e.description = 'Max 500 characters';
     if (collabIntent.length > 300) e.collabIntent = 'Max 300 characters';
-    if (techStack.length > 12) e.techStack = 'Max 12 tech tags';
-    if (needs.length > 10) e.needs = 'Max 10 contribution tags';
+    if (techStack.length > 8) e.techStack = 'Max 8 tech tags';
+    if (needs.length > 6) e.needs = 'Max 6 contribution tags';
     setErrors(e);
   }, [name, description, collabIntent, techStack, needs]);
 
@@ -288,18 +287,27 @@ export default function ProjectCreate({ editMode = false, existingProject }: Pro
     if (!publicKey || !program) return;
     if (!canSubmit || loading) return;
 
+    console.log('🔍 Submit debug:', {
+      editMode,
+      hasExistingProject: !!existingProject,
+      existingProject: existingProject ? {
+        publicKey: existingProject.publicKey?.toString(),
+        accountName: existingProject.account?.name,
+      } : null,
+    });
+
     // Sanitize and enforce strict limits to avoid on-chain size overruns
     const trimStr = (s: string) => s.trim();
     const capLen = (s: string, n: number) => (s.length > n ? s.slice(0, n) : s);
     const dedupe = (arr: string[]) => Array.from(new Set(arr));
 
     const safeName = capLen(trimStr(name), 32);
-    const safeDesc = capLen(trimStr(description), 1000);
+    const safeDesc = capLen(trimStr(description), 500);
     const safeGithub = capLen(trimStr(githubUrl), 100);
     const safeIntent = trimStr(collabIntent) ? capLen(trimStr(collabIntent), 300) : '';
-    const safeTech = dedupe(techStack.map(t => capLen(trimStr(t), 24))).slice(0, 12);
-    const safeNeeds = dedupe(needs.map(t => capLen(trimStr(t), 24))).slice(0, 10);
-    const safeRoles = roleRequirements.slice(0, 8).map((r) => ({
+    const safeTech = dedupe(techStack.map(t => capLen(trimStr(t), 24))).slice(0, 8);
+    const safeNeeds = dedupe(needs.map(t => capLen(trimStr(t), 24))).slice(0, 6);
+    const safeRoles = roleRequirements.slice(0, 6).map((r) => ({
       role: r.role,
       needed: Math.max(0, Math.min(10, r.needed || 0)),
       label: r.role === 'others' && r.label ? capLen(trimStr(r.label), 24) : null,
@@ -316,122 +324,64 @@ export default function ProjectCreate({ editMode = false, existingProject }: Pro
       return;
     }
     if (safeTech.length === 0) {
-      alert('Select at least one tech.');
-      return;
-    }
-    if (safeNeeds.length === 0) {
-      alert('Select at least one contribution need.');
+      alert('Please select at least one technology.');
       return;
     }
 
-    // warn early if estimated size is too big
-    if (estimateSize > RECOMMENDED_MAX) {
-      alert(
-        'Your project data is currently too large (' +
-          estimateSize +
-          ' bytes, max ~' + RECOMMENDED_MAX +
-          '). Shorten description and reduce tags (tech/contribution), or decrease role labels.'
-      );
-      return;
-    }
     setLoading(true);
+    let logoHash = '';
+    let projectPDA: PublicKey;
+
     try {
-      // Ensure profile exists
-      const [userPda] = getUserPDA(publicKey);
-      const userAcct = await (program as any).account.user.fetchNullable(userPda);
-      if (!userAcct) {
-        alert('You must create your profile before creating a project.');
-        router.push('/profile');
-        return;
-      }
-      // Upload logo to IPFS if provided
-      let logoHash = null;
+      // Upload logo if selected
       if (logoFile) {
         try {
-          console.log('Uploading logo to IPFS...');
-          const uploadedHash = await uploadImageToIPFS(logoFile);
-          // Validate the returned hash
-          if (uploadedHash && typeof uploadedHash === 'string' && uploadedHash.trim().length > 0) {
-            logoHash = uploadedHash;
-          } else {
-            console.warn('Upload returned invalid hash, proceeding without logo');
-          }
+          logoHash = await uploadImageToIPFS(logoFile);
         } catch (uploadErr) {
           console.error('Failed to upload logo:', uploadErr);
           alert('Failed to upload logo. Creating project without logo.');
         }
       }
 
-      let projectPDA: PublicKey;
-      
       if (editMode && existingProject) {
-        // Edit mode: use existing project PDA
+        // Edit mode logic here...
+        const originalName = existingProject.account?.name || name;
+        
+        // Check for PDA mismatch
+        const expectedPDA = getProjectPDA(publicKey, originalName)[0];
+        if (!expectedPDA.equals(existingProject.publicKey)) {
+          alert('⚠️ This project was created with an older version and cannot be updated.\n\nTo update: Create a new project with the same name and copy your content.\n\nThis ensures compatibility with the latest program features.');
+          setLoading(false);
+          return;
+        }
+        
         projectPDA = existingProject.publicKey;
         
         // Call update_project instruction
-        // Note: update_project doesn't support logo or role updates, only basic fields
         await (program as any).methods
           .updateProject(
-            safeName,                           // name: Option<String>
-            safeDesc,                           // description: Option<String>
-            safeGithub,                         // github_link: Option<String>
-            safeTech,                           // tech_stack: Option<Vec<String>>
-            safeNeeds,                          // contribution_needs: Option<Vec<String>>
-            safeIntent,                         // collab_intent: Option<String>
-            CollaborationLevel[collabLevel],    // collaboration_level: Option<CollaborationLevel>
-            ProjectStatus[status],              // project_status: Option<ProjectStatus>
-            true                                // is_active: Option<bool>
+            originalName,
+            safeDesc,
+            safeGithub,
+            safeTech,
+            safeNeeds,
+            safeIntent,
+            CollaborationLevel[collabLevel],
+            ProjectStatus[status],
+            true
           )
           .accounts({
             project: projectPDA,
             creator: publicKey,
           })
           .rpc();
-        // Update roles if changed
-        if (roleRequirements.length > 0) {
-          try {
-            const roleReqs = roleRequirements.filter(r => r.needed > 0).map(r => {
-              // Map to PascalCase enum variants matching IDL
-              const roleMapping: Record<string, string> = {
-                'frontend': 'Frontend',
-                'backend': 'Backend',
-                'fullstack': 'Fullstack',
-                'devops': 'DevOps',
-                'qa': 'QA',
-                'designer': 'Designer',
-                'others': 'Others'
-              };
-              const roleVariant = roleMapping[r.role.toLowerCase()] || 'Others';
-              return {
-                role: { [roleVariant]: {} },
-                needed: r.needed,
-                accepted: 0,
-                label: (r.role === 'others' && r.label) ? r.label : null,
-              };
-            });
-            await (program as any).methods.updateProjectRoles(roleReqs).accounts({ project: projectPDA, creator: publicKey }).rpc();
-          } catch (err) {
-            console.error('Update roles error:', err);
-          }
-        }
+        
         alert('✅ Project updated successfully!');
         router.push(`/projects/${projectPDA.toBase58()}`);
       } else {
-        // Create mode: derive new PDA
-        const [newProjectPDA] = await getProjectPDA(publicKey, name);
+        // Create mode logic here...
+        const [newProjectPDA] = getProjectPDA(publicKey, name);
         projectPDA = newProjectPDA;
-
-        // Preflight: prevent duplicate name PDA collisions (legacy or existing projects)
-        try {
-          const info = await (program as any).provider.connection.getAccountInfo(projectPDA, 'processed');
-          if (info) {
-            alert('A project with this name already exists for your wallet. Please choose a different name or edit the existing project.');
-            setLoading(false);
-            return;
-          }
-        } catch (e) {
-          // Ignore RPC hiccups; continue to attempt creation
-        }
 
         await (program as any).methods
           .createProject(
@@ -445,7 +395,6 @@ export default function ProjectCreate({ editMode = false, existingProject }: Pro
             CollaborationLevel[collabLevel],
             ProjectStatus[status],
             safeRoles.filter(r => r.needed > 0).map(r => {
-              // Map lowercase role to PascalCase enum variant (matches IDL exactly)
               const roleMapping: Record<string, string> = {
                 'frontend': 'Frontend',
                 'backend': 'Backend',
@@ -457,49 +406,57 @@ export default function ProjectCreate({ editMode = false, existingProject }: Pro
               };
               const roleVariant = roleMapping[r.role.toLowerCase()] || 'Others';
               return {
-                role: { [roleVariant]: {} },
+                role: (Role as any)[roleVariant],
                 needed: r.needed,
                 accepted: 0,
-                label: (r.role === 'others' && r.label) ? r.label : null
+                label: (r.role === 'others' && r.label) ? r.label : null,
               };
             })
           )
           .accounts({
             project: projectPDA,
-            user: userPda,
+            user: getUserPDA(publicKey)[0],
             creator: publicKey,
             systemProgram: SystemProgram.programId,
           })
           .rpc();
-        
-        // Navigate to the newly created project detail page
-        try {
-          // Small delay to allow RPC indexing
-          setTimeout(() => {
-            router.replace(`/projects/${projectPDA.toBase58()}`);
-          }, 300);
-        } catch {
-          // Fallback: go to projects list
-          router.push('/projects');
-        }
+
+        alert('✅ Project created successfully!');
+        router.push(`/projects/${projectPDA.toBase58()}`);
       }
     } catch (error: any) {
       console.error('Create project error:', error);
-      const msg = String(error?.message || '');
-      if (msg.includes('encoding overruns Buffer')) {
-        alert('Your project data is too large for a single Solana account. Please shorten the description or reduce the number/length of tags and try again.');
-        return;
-      }
-      if (error.message?.includes('already in use')) {
-        alert('A project with this name already exists for your wallet. Try a different name.');
-      } else if (error.message?.includes('too many')) {
-        alert('Too many tags selected.');
-      } else {
-        try {
-          if (error.getLogs) console.error('Logs:', await error.getLogs());
-        } catch {}
-        alert('Error: ' + (error.message || 'Unknown error'));
-      }
+      try {
+        if (error.getLogs) console.error('Logs:', await error.getLogs());
+      } catch {}
+      alert('Error: ' + (error.message || 'Unknown error'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!editMode || !existingProject) return;
+    
+    if (!confirm('⚠️ Are you sure you want to delete this project? This action cannot be undone and will permanently remove all project data.')) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await (program as any).methods
+        .deleteProject()
+        .accounts({
+          project: existingProject.publicKey,
+          creator: publicKey,
+        })
+        .rpc();
+      
+      alert('✅ Project deleted successfully!');
+      router.push('/projects');
+    } catch (err) {
+      console.error('Delete project error:', err);
+      alert('Failed to delete project. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -516,7 +473,7 @@ export default function ProjectCreate({ editMode = false, existingProject }: Pro
 
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8 max-w-3xl mx-auto shadow-sm">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Create a New Project</h2>
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">{editMode ? 'Edit Project' : 'Create a New Project'}</h2>
 
       {/* Project Name */}
       <div className="mb-4">
@@ -526,10 +483,14 @@ export default function ProjectCreate({ editMode = false, existingProject }: Pro
           value={name}
           onChange={(e) => setName(e.target.value)}
           maxLength={32}
-          className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#00D4AA]/30 focus:border-[#00D4AA]"
+          disabled={editMode}
+          className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#00D4AA]/30 focus:border-[#00D4AA] disabled:bg-gray-100 disabled:cursor-not-allowed"
           placeholder="c0Foundr Platform"
         />
-        <div className="text-xs text-gray-500 mt-1">{name.length}/32 (PDA seed limit)</div>
+        <div className="text-xs text-gray-500 mt-1">
+          {name.length}/32 (PDA seed limit)
+          {editMode && <span className="text-orange-600 ml-2">• Cannot be changed after creation</span>}
+        </div>
         {errors.name && <p className="text-red-600 text-sm mt-1">{errors.name}</p>}
       </div>
 
@@ -654,12 +615,12 @@ export default function ProjectCreate({ editMode = false, existingProject }: Pro
         <label className="block text-gray-700 mb-2 font-semibold">Project Status *</label>
         <div className="flex flex-wrap gap-2">
           {([
-            { key: 'Planning', label: 'Planning' },
-            { key: 'Development', label: 'Development' },
-            { key: 'Testing', label: 'Testing' },
-            { key: 'Launched', label: 'Launched' },
+            { key: 'JustStarted', label: 'Just Started' },
+            { key: 'InProgress', label: 'In Progress' },
+            { key: 'NearlyComplete', label: 'Nearly Complete' },
+            { key: 'Completed', label: 'Completed' },
             { key: 'ActiveDev', label: 'Active Development' },
-            { key: 'Paused', label: 'Paused' },
+            { key: 'OnHold', label: 'On Hold' },
           ] as const).map((opt) => (
             <button
               key={opt.key}
@@ -680,7 +641,7 @@ export default function ProjectCreate({ editMode = false, existingProject }: Pro
             <button
               type="button"
               key={t.key}
-              onClick={() => toggleTag(needs, t.key, setNeeds, 10)}
+              onClick={() => toggleTag(needs, t.key, setNeeds, 6)}
               className={`px-3 py-2 rounded-lg border text-sm ${needs.includes(t.key)? 'bg-teal-500 border-teal-500 text-white':'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'}`}
               title={t.label}
             >
@@ -699,7 +660,7 @@ export default function ProjectCreate({ editMode = false, existingProject }: Pro
           />
           <button
             type="button"
-            onClick={() => { addCustom(customNeed, setNeeds, 10); setCustomNeed(''); }}
+            onClick={() => { addCustom(customNeed, setNeeds, 6); setCustomNeed(''); }}
             className={`px-4 py-2 rounded-lg bg-[#00D4AA] hover:bg-[#00B894] text-black font-black ${premium.className}`}
           >
             + Add
@@ -733,7 +694,7 @@ export default function ProjectCreate({ editMode = false, existingProject }: Pro
             <button
               type="button"
               key={t.key}
-              onClick={() => toggleTag(techStack, t.key, setTechStack, 12)}
+              onClick={() => toggleTag(techStack, t.key, setTechStack, 8)}
               className={`px-3 py-2 rounded-lg border text-sm ${techStack.includes(t.key)? 'bg-teal-500 border-teal-500 text-white':'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'}`}
               title={t.label}
             >
@@ -798,12 +759,12 @@ export default function ProjectCreate({ editMode = false, existingProject }: Pro
         <label className="block text-gray-700 mb-2 font-semibold">Project Status *</label>
         <div className="grid grid-cols-2 gap-2">
           {([
-            { key: 'Planning', label: 'Planning' },
-            { key: 'Development', label: 'Development' },
-            { key: 'Testing', label: 'Testing' },
-            { key: 'Launched', label: 'Launched' },
+            { key: 'JustStarted', label: 'Just Started' },
+            { key: 'InProgress', label: 'In Progress' },
+            { key: 'NearlyComplete', label: 'Nearly Complete' },
+            { key: 'Completed', label: 'Completed' },
             { key: 'ActiveDev', label: 'Active Development' },
-            { key: 'Paused', label: 'Paused' },
+            { key: 'OnHold', label: 'On Hold' },
           ] as const).map((opt) => (
             <button
               key={opt.key}
@@ -817,6 +778,15 @@ export default function ProjectCreate({ editMode = false, existingProject }: Pro
       </div>
 
       <div className="flex gap-3">
+        {editMode && (
+          <button
+            onClick={handleDelete}
+            disabled={loading}
+            className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Delete
+          </button>
+        )}
         <button
           onClick={() => {
             setName('');
@@ -826,18 +796,18 @@ export default function ProjectCreate({ editMode = false, existingProject }: Pro
             setNeeds([]);
             setCollabIntent('');
             setCollabLevel('Intermediate');
-            setStatus('Development');
+            setStatus('InProgress');
           }}
-          className="flex-1 border border-gray-300 text-gray-700 hover:bg-gray-50 px-6 py-3 rounded-lg font-semibold"
+          className={`${editMode ? 'flex-1' : 'flex-1'} border border-gray-300 text-gray-700 hover:bg-gray-50 px-6 py-3 rounded-lg font-semibold`}
         >
           Reset
         </button>
         <button
           onClick={handleSubmit}
           disabled={!canSubmit || loading}
-          className={`flex-1 bg-[#00D4AA] hover:bg-[#00B894] text-black px-6 py-3 rounded-lg font-black disabled:opacity-50 disabled:cursor-not-allowed ${premium.className}`}
+          className={`${editMode ? 'flex-1' : 'flex-1'} bg-[#00D4AA] hover:bg-[#00B894] text-black px-6 py-3 rounded-lg font-black disabled:opacity-50 disabled:cursor-not-allowed ${premium.className}`}
         >
-          {loading ? 'Creating…' : 'Create Project'}
+          {loading ? (editMode ? 'Updating…' : 'Creating…') : (editMode ? 'Update Project' : 'Create Project')}
         </button>
       </div>
     </div>

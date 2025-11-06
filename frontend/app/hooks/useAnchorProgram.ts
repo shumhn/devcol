@@ -9,14 +9,14 @@ import type { Idl } from '@coral-xyz/anchor';
 import type { DeVColProgram } from '../types/program';
 
 // Program ID from your deployed contract
-export const PROGRAM_ID = new PublicKey('F1z678h8UgZin1Dmt3iEAiR9vF7KWytkaoeGd2hgbBRn');
+export const PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_PROGRAM_ID_DEVNET || 'F1z678h8UgZin1Dmt3iEAiR9vF7KWytkaoeGd2hgbBRn');
 
 export function useAnchorProgram() {
   const wallet = useWallet();
 
   const provider = useMemo(() => {
     if (!wallet.publicKey) return null;
-    const endpoint = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || clusterApiUrl('devnet');
+    const endpoint = process.env.NEXT_PUBLIC_SOLANA_RPC_URL_DEVNET || process.env.NEXT_PUBLIC_SOLANA_RPC_URL || clusterApiUrl('devnet');
     const connection = new Connection(endpoint, 'confirmed');
     return new AnchorProvider(connection, wallet as any, { commitment: 'confirmed' });
   }, [wallet]);

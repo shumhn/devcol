@@ -7,8 +7,8 @@ import { PublicKey } from '@solana/web3.js';
 import { PROGRAM_ID } from '../hooks/useAnchorProgram';
 
 // PDA helper for project account: seeds = ["project", creator, name]
-export async function getProjectPDA(creator: PublicKey, name: string): Promise<[PublicKey, number]> {
-  return await PublicKey.findProgramAddress(
+export function getProjectPDA(creator: PublicKey, name: string): [PublicKey, number] {
+  return PublicKey.findProgramAddressSync(
     [Buffer.from('project'), creator.toBuffer(), Buffer.from(name)],
     PROGRAM_ID,
   );
