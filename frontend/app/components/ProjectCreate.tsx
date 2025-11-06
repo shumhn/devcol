@@ -233,7 +233,7 @@ export default function ProjectCreate({ editMode = false, existingProject }: Pro
 
   useEffect(() => {
     const e: Record<string, string> = {};
-    if (name.length > 50) e.name = 'Max 50 characters';
+    if (name.length > 32) e.name = 'Max 32 characters (Solana PDA seed limit)';
     if (description.length > 1000) e.description = 'Max 1000 characters';
     if (collabIntent.length > 300) e.collabIntent = 'Max 300 characters';
     if (techStack.length > 12) e.techStack = 'Max 12 tech tags';
@@ -293,7 +293,7 @@ export default function ProjectCreate({ editMode = false, existingProject }: Pro
     const capLen = (s: string, n: number) => (s.length > n ? s.slice(0, n) : s);
     const dedupe = (arr: string[]) => Array.from(new Set(arr));
 
-    const safeName = capLen(trimStr(name), 50);
+    const safeName = capLen(trimStr(name), 32);
     const safeDesc = capLen(trimStr(description), 1000);
     const safeGithub = capLen(trimStr(githubUrl), 100);
     const safeIntent = capLen(trimStr(collabIntent), 300);
@@ -493,11 +493,11 @@ export default function ProjectCreate({ editMode = false, existingProject }: Pro
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          maxLength={50}
+          maxLength={32}
           className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#00D4AA]/30 focus:border-[#00D4AA]"
-          placeholder="c0Foundr - Web3 Collaboration Platform"
+          placeholder="c0Foundr Platform"
         />
-        <div className="text-xs text-gray-500 mt-1">{name.length}/50</div>
+        <div className="text-xs text-gray-500 mt-1">{name.length}/32 (PDA seed limit)</div>
         {errors.name && <p className="text-red-600 text-sm mt-1">{errors.name}</p>}
       </div>
 
